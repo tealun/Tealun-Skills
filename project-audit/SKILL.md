@@ -4,7 +4,7 @@ description: >
   Universal automated project audit skill — code review, security scan, architecture health check,
   and document management. Works with any tech stack (React/Vue/Node/Go/Python/DB/etc).
   Audit phase is fully automated; fix phase is separate and requires explicit confirmation.
-version: 2.1.0
+version: 2.2.0
 ---
 
 # Universal Project Audit
@@ -45,7 +45,7 @@ audit:
   mode: auto                  # auto | interactive
   max_depth: deep             # quick | standard | deep
   max_duration_minutes: 20    # hard cap for a single audit run
-  output_dir: docs/audits     # where reports are written automatically
+  output_dir: docs/99_audit   # where reports are written automatically
   push_report: false          # audit phase never pushes; set true only for fix workflow
 ```
 
@@ -53,7 +53,7 @@ If the file is missing, use these defaults:
 - mode: auto
 - max_depth: deep
 - max_duration_minutes: 20
-- output_dir: docs/audits
+- output_dir: docs/99_audit
 - push_report: false
 
 ---
@@ -238,11 +238,61 @@ Common false positive patterns:
 
 ### 2.5 Write Report Automatically
 
-Write the report to `output_dir` without asking.
+Write the report to `docs/99_audit/` without asking. Create the directory if it does not exist.
 
-Report format:
+#### Naming Convention
+
+All audit files use the `99_` prefix so they sort at the end of `docs/`:
+
+```
+docs/99_audit/
+├── 99_00_security.md
+├── 99_01_backend_health.md
+├── 99_02_shell_health.md
+└── 99_9999_deferred.md
+```
+
+Rules:
+- Sequential number starting at `99_00`
+- Format: `99_NN_<aspect>.md`
+- `<aspect>` = main focus of the audit, 1–3 words max, keep filename short
+- Do not use full dates or long descriptions in the filename
+- Example: `99_03_deps.md`, `99_04_auth.md`, `99_05_config.md`
+
+#### Deferred File
+
+There is exactly one deferred file per project:
+
+```
+docs/99_audit/99_9999_deferred.md
+```
+
+All deferred items must be moved there. Do not keep deferred items inside individual audit files.
+
+Each deferred entry must include:
+- Original audit file (e.g., `99_00_security.md`)
+- Audit item ID (e.g., `S-P0-1`)
+- Issue summary
+- Why deferred
+- Planned fix date or condition
+
+#### Status Tracking
+
+Every finding in an audit file has a **Status** column. Allowed values:
+
+| Status | Meaning |
+|--------|---------|
+| `Open` | Not fixed yet |
+| `Fixed` | Fix verified |
+| `Deferred` | Moved to `99_9999_deferred.md` |
+| `Declined` | User chose not to fix |
+
+When an item is fixed or deferred, update its status in the audit file immediately. Do not leave fixed items as `Open`.
+
+#### Report Format
+
 ```markdown
-# Audit #NN — <date>
+# 99_NN — <aspect> — <date>
 ## Scope
 - Range: <commit-old>..<commit-new>
 - Files: <N> changed
@@ -252,9 +302,9 @@ Report format:
 ## Findings
 
 ### P0 — Must Fix
-| ID | Title | File | Line | Evidence | Fix |
-|----|-------|------|------|----------|-----|
-| S-P0-1 | SQL injection | routes/query.ts | 45 | Unparameterized query | Use parameterized query |
+| ID | Status | Title | File | Line | Evidence | Fix |
+|----|--------|-------|------|------|----------|-----|
+| S-P0-1 | Open | SQL injection | routes/query.ts | 45 | Unparameterized query | Use parameterized query |
 
 ### P1 — Should Fix Soon
 ...
@@ -266,20 +316,9 @@ Report format:
 1. S-P0-1: ...
 2. B-P1-1: ...
 
-## Deferred
-- <items moved to deferred list>
-
 ## Doc Updates Needed
 - <specs/schemas to update>
 ```
-
-Naming:
-- `audit_NN_<short-desc>.md` or project-specific convention
-- NN = sequential number (01, 02, ...)
-
-Deferred items:
-- Maintain one `deferred.md` or `99_deferred.md` per project
-- Include: original audit ID, issue summary, why deferred, planned fix date
 
 ### 2.6 Present Findings
 
@@ -302,10 +341,13 @@ Process:
 1. `git pull` → identify new range (last audit commit → new HEAD)
 2. `git diff <old>..<new>` — see what changed
 3. Batch verify each previous finding
-4. Scan for new issues — fixes may introduce regressions
-5. Write concise verification report automatically
+4. **Update status** in the original audit file for every fixed/deferred item
+5. Scan for new issues — fixes may introduce regressions
+6. Write concise verification report automatically
 
 Key: Don't redo full audit. Only cover previous findings + fix-induced issues.
+
+**Critical:** After verification, no finding in any audit file may remain `Open` if it has been fixed. Update the status column to `Fixed` and include the verification commit hash.
 
 ---
 
@@ -421,8 +463,12 @@ Enter fix mode only when the user explicitly says:
 2. Get explicit confirmation
 3. Apply fixes with `patch` or equivalent
 4. Verify fixes with grep/tests
-5. Write a verification note
-6. Only push if user confirms (`push_report: true` or explicit approval)
+5. **Update the audit file status** for every fixed item: change `Open` → `Fixed`, add verification commit hash
+6. If an item is deferred, change its status to `Deferred` and move it to `docs/99_audit/99_9999_deferred.md`
+7. Write a verification note
+8. Only push if user confirms (`push_report: true` or explicit approval)
+
+**Critical rule:** After any fix, scan all audit files in `docs/99_audit/`. No item may remain `Open` if it has already been fixed or deferred.
 
 ---
 
@@ -437,7 +483,7 @@ User may push during audit. Always `git pull --rebase` before push in fix mode.
 ### Wrong File Path
 `write_file` resolves `~/projects/X` to a different directory than `terminal` (`/home/hermes/` vs `/root/`). Always use `terminal` heredoc for file writes:
 ```bash
-cd ~/projects/<PROJECT> && cat > docs/audit.md << 'EOF'
+cd ~/projects/<PROJECT> && cat > docs/99_audit/99_00_security.md << 'EOF'
 ...content...
 EOF
 ```
@@ -501,7 +547,7 @@ npx tsc --noEmit 2>&1 | grep "error TS" | wc -l
 ### Report Template
 
 ```markdown
-# Audit #NN — <Date>
+# 99_NN — <aspect> — <Date>
 ## Scope
 - Commits: <old>..<new> (<N> commits)
 - Files: <M> changed
@@ -513,7 +559,9 @@ npx tsc --noEmit 2>&1 | grep "error TS" | wc -l
 - New issues: <N> | Fixed from previous: <N>
 
 ## P0 — Must Fix
-...
+| ID | Status | Title | File | Line | Evidence | Fix |
+|----|--------|-------|------|------|----------|-----|
+| S-P0-1 | Open | SQL injection | routes/query.ts | 45 | Unparameterized query | Use parameterized query |
 
 ## P1 — Should Fix
 ...
@@ -522,13 +570,23 @@ npx tsc --noEmit 2>&1 | grep "error TS" | wc -l
 ...
 
 ## Verification Log
-- ✅ <finding> — confirmed at file:line
-- ❌ <finding> — false positive (reason)
+- ✅ S-P0-1 — fixed in commit <hash>
+- ❌ B-P1-1 — false positive (reason)
 
-## Deferred
-- <item> (from audit #NN)
+## Doc Updates Needed
+- <specs/schemas to update>
 
 ## Next Steps
 1. Fix P0-1: ...
 2. Fix P0-2: ...
+```
+
+### Deferred File Template
+
+```markdown
+# 99_9999 — Deferred
+
+| Audit File | ID | Summary | Reason | Planned Fix |
+|------------|----|---------|--------|-------------|
+| 99_00_security.md | S-P0-1 | SQL injection | Waiting for ORM migration | 2026-06-30 |
 ```
