@@ -4,7 +4,7 @@ description: >
   Universal automated project audit skill — code review, security scan, architecture health check,
   and document management. Works with any tech stack (React/Vue/Node/Go/Python/DB/etc).
   Audit phase is fully automated; fix phase is separate and requires explicit confirmation.
-version: 2.2.0
+version: 2.4.1
 ---
 
 # Universal Project Audit
@@ -169,6 +169,7 @@ Use `execute_code` to run 6–10 verification commands covering:
 - Security: auth checks, input validation, exposed secrets
 - Health: TODO count, dead code, unused imports, console.log residue
 - Types: compilation errors, type mismatches
+- Maintainability: boundary leakage, over-engineering, hardcoded config (see Section 5)
 
 Reference `references/deep-audit-checklist.md` for command templates.
 
@@ -177,12 +178,12 @@ Reference `references/deep-audit-checklist.md` for command templates.
 Run 5 specialist agents in two batches (max 3 concurrent):
 
 **Batch 1 — Core Risks:**
-1. **Security Agent** — Auth, injection, XSS, IDOR, data exposure, race conditions, rate limiting
-2. **Backend Agent** — API semantics, error handling, transactions, N+1, idempotency, DB health
-3. **Frontend Agent** — Controlled components, render perf, memory leaks, error boundaries, a11y
+1. **Security Agent** — Auth, injection, XSS, IDOR, data exposure, race conditions, rate limiting; **tenant/role isolation (multi-tenant, RLS, cross-account access), log redaction of PII** (dims 3/6)
+2. **Backend Agent** — API semantics, error handling, transactions, N+1, idempotency, DB health; **third-party integration reliability (SDK, callbacks, timeout/retry/circuit-breaker, graceful degradation), data accuracy (metric definitions, attribution, aggregation), parameter-passing boundaries (internal vs public ID, URL/body/header/token)** (dims 2/7/8)
+3. **Frontend Agent** — Controlled components, render perf, memory leaks, error boundaries, a11y; **runtime smoothness (cache/concurrency/timeout/resource + wait experience), UX states (empty / loading / error-degradation / key-path flow)** (dims 5/9)
 
 **Batch 2 — Code Quality:**
-4. **Architecture Agent** — Module boundaries, naming, typing, spec↔code alignment, duplication
+4. **Architecture Agent** — Module boundaries, naming, typing, spec↔code alignment, duplication, **and maintainability (see Section 5): boundary/scope leakage, over-engineering, upgradability; coding-standard consistency (response envelope, error codes, directory/lint conventions)** (dims 1/10)
 5. **Health Agent** — Debug residue, TODO inventory, dead code, unused deps, vulnerabilities
 
 Agent context template:
@@ -202,8 +203,58 @@ In addition to standard audit:
 - Scan infrastructure and configuration files
 - Run supply-chain vulnerability checks
 - Allow follow-up rounds if agents surface complex issues
+- **Run a 6th Test & Ops Agent** (Deep only — do not run in Quick/Standard):
+  - **Test coverage (dim 11):** presence and adequacy of unit / integration / contract tests; authorization (越权) tests on protected routes; migration tests; whether CI actually enforces them (required checks, not skippable).
+  - **Deploy & Ops (dim 12):** environment config hygiene, structured logging, monitoring/alerting, health checks, rollback path, backup, and secret rotation.
+  - Report gaps here as **P1 by default** (missing safety net), escalate to P0 only when a live production path has zero coverage/rollback.
 
 Use the time cap from config. If the cap is reached, stop and report findings so far, noting the partial coverage.
+
+#### 12-Dimension Coverage Map
+
+The specialist agents above are the *executors*; these 12 dimensions are the *checklist they must not silently drop*. Each dimension maps to an owning agent and one must-check. Use this to confirm nothing was skipped before writing the report.
+
+| # | Dimension | Owner agent | Must-check (one line) |
+|---|-----------|-------------|-----------------------|
+| 1 | 架构 Architecture | Architecture | Module boundaries, tech-choice fit, extensibility, complexity (see Section 5) |
+| 2 | 平台对接 Platform integration | Backend | SDK/callback correctness, external-call timeout/retry/circuit-breaker, degradation on outage |
+| 3 | 安全防护 Security | Security | Auth/authz, secrets, encryption, log redaction, anti-abuse, anti-injection |
+| 4 | 代码高效 Code efficiency | Architecture | Simple, low-duplication, low-complexity; no needless compute/queries (see Section 5.3) |
+| 5 | 运行流畅 Runtime smoothness | Frontend + Backend | Perf, cache, concurrency, timeout/retry, resource use, wait experience |
+| 6 | 信息隔离 Info isolation | Security | Multi-tenant / role / data-permission / RLS; no cross-tenant/account access |
+| 7 | 数据准确 Data accuracy | Backend | Data model, metric definitions, attribution, idempotency, transaction consistency |
+| 8 | 参数传递 Parameter passing | Backend | URL/body/header/token + internal vs public ID boundaries are clear and safe |
+| 9 | 用户体验 UX | Frontend | Flow, status hints, error degradation, empty/loading states, key-path smoothness |
+| 10 | 编码规范 Coding standards | Architecture + Health | Format/naming/dir/lint/comments/types + consistent response envelope & error codes |
+| 11 | 测试验证 Testing | Test & Ops (Deep) | Unit/integration/contract/authz(越权)/migration tests + CI enforces them |
+| 12 | 部署运维 Deploy & Ops | Test & Ops (Deep) | Env config, logs, monitoring, alerting, health checks, rollback, backup, secret rotation |
+
+Depth note: dims 1–10 run in Standard and Deep; dims 11–12 run in Deep only. Quick scan spot-checks dims 3/4/10 (security, efficiency, standards) as the minimal safety floor.
+
+#### Applicability Rule (works for any project, not just SaaS)
+
+The 12 dimensions are a superset. **A dimension applies only when the project's shape (from Section 1 fingerprinting) actually has that surface.** If the surface is absent, mark the dimension **`N/A — <one-line reason>`** in the report and move on. **Never fabricate a finding for an absent surface** (e.g. "no multi-tenant isolation" on a CLI tool is noise, not a finding). This is the same anti-false-positive discipline as Section 2.4.
+
+**Always-on (any codebase that has code / runs / ships):** 1 架构, 3 安全, 4 代码高效, 5 运行流畅, 7 数据准确, 10 编码规范, 11 测试, 12 部署运维. (Their *scope* adapts — e.g. "安全" for a CLI is input/arg validation and secret handling, not web auth.)
+
+**Conditional (only if the surface exists):**
+- **2 平台对接** — only if the project integrates external platforms/SDKs/callbacks.
+- **6 信息隔离** — only if multi-tenant or multi-user with data-permission boundaries.
+- **8 参数传递** — only if there is a request/entry surface (HTTP/RPC/CLI args/public API).
+- **9 用户体验** — only if there is a UI (web/mobile/desktop/TUI).
+
+**Default dimension set by project shape:**
+
+| Project shape | Applies | Typically N/A |
+|---------------|---------|---------------|
+| SaaS / Web service | all 12 | — |
+| CLI tool | 1,3,4,5,7,10,11,12 (+8 as arg-parsing) | 2,6,9 (unless it calls external APIs) |
+| Library / SDK | 1,3,4,5,7,10,11 (+8 = its public API surface) | 6,9,12 |
+| Data pipeline / ETL | 1,4,5,**7 (primary)**,11,12 (+6 if data tenancy) | 9 |
+| Mobile / desktop app | 1,3,5,8,9,10,11 (+2 if backend) | 6 (usually) |
+| Firmware / embedded / ML training | 1,3,4,5,7,10,11 (ops/test model differs — adapt 11/12) | 2,6,8,9 |
+
+When the shape is ambiguous, include the conditional dimension but flag it `N/A?` and let evidence confirm or drop it. Do not block the audit to ask.
 
 ### 2.4 Verify Agent Reports (CRITICAL)
 
@@ -392,7 +443,76 @@ When code passes user input through LLM and stores/writes output.
 
 ---
 
-## Section 5: Document Management
+## Section 5: Maintainability & Boundary Audit
+
+The audit above catches what *breaks*. This section catches what *rots*: unclear boundaries, over-engineering, and code that is hard to change or upgrade. These rarely cause an immediate crash, so they default to **P1** (structural risk) — never inflate them to P0.
+
+Guiding principle (the audit's own north star): **keep boundaries clear, don't overreach, stay easy to maintain and upgrade, and don't make simple things complex.** Apply it to the code under audit — and to any fix you propose.
+
+### 5.1 Boundary Clarity & No Overreach（边界清晰·不越权）
+
+A module should do one job and reach only where it is allowed to. Flag:
+
+- **Cross-layer reach-in** — UI/component code touching the DB or ORM directly; a route handler embedding business rules; a "util" function that mutates global state, writes files, or makes network calls.
+- **Responsibility leakage** — one module doing work that belongs to another (e.g., a formatter that also validates and persists).
+- **Hidden coupling** — modules communicating through global variables, singletons, or side effects instead of explicit inputs/outputs.
+- **Scope creep in a single unit** — a function/class that grew to own unrelated concerns (auth + logging + business logic in one place).
+
+Verification anchors:
+```bash
+# UI/components reaching directly into DB/ORM (should go through a service layer)
+grep -rn "prisma\.\|db\.\|knex(\|mongoose\.\|sequelize\." src/components src/pages src/app --include="*.tsx" --include="*.jsx" 2>/dev/null | head -20
+# "util/helper" files with side effects (network, fs, global mutation) — utils should be pure
+grep -rn "fetch(\|axios\|fs\.\|process\.env\|globalThis\|window\." src/utils src/lib/helpers --include="*.ts" 2>/dev/null | head -20
+```
+
+### 5.2 Maintainability & Upgradability（好维护·好升级）
+
+Can the next person change this safely, and can dependencies move forward without a rewrite? Flag:
+
+- **Hardcoded config** — magic values, URLs, keys, limits that should be config/env; the same constant duplicated across files.
+- **Shotgun surgery** — adding one feature forces edits in many scattered places (missing a single extension point / registry / factory-of-last-resort).
+- **Upgrade traps** — unpinned or wildcard dependency versions, deep imports into a library's internals, forked/patched vendor code with no migration note, deprecated APIs still in use.
+- **Contract drift** — public interface / API / schema no longer matches its docs or callers (ties into spec↔code alignment).
+
+Verification anchors:
+```bash
+# Wildcard / unpinned deps (upgrade risk)
+grep -rn "\"\\^\\|\"~\\|\"\\*\"\|latest" package.json 2>/dev/null | head -20
+# Deep imports into library internals (breaks on upgrade)
+grep -rn "from '.*/node_modules/\|/dist/\|/lib/internal" src/ --include="*.ts*" 2>/dev/null | head -20
+# Deprecated markers still referenced
+grep -rn "@deprecated\|DEPRECATED" src/ --include="*.ts*" 2>/dev/null | head -20
+```
+
+### 5.3 Anti-Over-Engineering / KISS（别把简单事做复杂）
+
+Complexity must be earned by a real, present requirement — not a hypothetical one. Flag:
+
+- **Speculative generality (YAGNI)** — abstractions, config flags, or plugin points built for needs that do not exist yet.
+- **Needless indirection** — factory/strategy/wrapper layers, single-implementation interfaces, or one-line "manager" classes where a plain function would do.
+- **Accidental complexity** — deep nesting, long parameter lists, high cyclomatic complexity, or a design pattern applied where three lines suffice.
+- **Premature optimization** — caching/pooling/micro-tuning with no measured bottleneck, at the cost of readability.
+
+Verification anchors:
+```bash
+# Single-implementation interfaces / abstract classes (candidate over-abstraction)
+grep -rn "interface \|abstract class " src/ --include="*.ts" 2>/dev/null | head -20
+# Deep nesting (rough complexity proxy: 6+ levels of indentation)
+grep -rnE "^( {24,}|\t{6,})\S" src/ --include="*.ts*" 2>/dev/null | head -20
+# "Manager/Factory/Wrapper/Helper" proliferation
+grep -rln "Manager\|Factory\|Wrapper\|Abstract" src/ --include="*.ts*" 2>/dev/null | head -20
+```
+
+### 5.4 Reporting
+
+Report these findings in the normal audit file (a dedicated `99_NN_maintainability.md` when they are the audit's main focus, otherwise inline). Each finding still needs concrete evidence and a location — the same verify-before-report rule from Section 2.4 applies. A "this could be simpler" claim with no file:line is a false positive.
+
+When proposing a fix, the fix itself must obey the north star: prefer the smallest change that clarifies the boundary or removes the excess complexity. Do not fix over-engineering by adding more abstraction.
+
+---
+
+## Section 6: Document Management
 
 ### 5.1 Status Sync
 
@@ -424,7 +544,7 @@ Pitfall: Version conflicts — bloated docs often have outdated values. Keep the
 
 ---
 
-## Section 6: Priority Levels
+## Section 7: Priority Levels
 
 | Level | Meaning | Examples |
 |-------|---------|----------|
@@ -435,7 +555,7 @@ Pitfall: Version conflicts — bloated docs often have outdated values. Keep the
 
 ---
 
-## Section 7: Fix Mode
+## Section 8: Fix Mode
 
 **Fixing is separate from auditing.** The audit phase ends when the report is written and findings are presented.
 
@@ -472,7 +592,7 @@ Enter fix mode only when the user explicitly says:
 
 ---
 
-## Section 8: Pitfalls & Recovery
+## Section 9: Pitfalls & Recovery
 
 ### Agent Timeout
 Large changes may timeout subagents. Accept partial results, use `execute_code` to manually cover remaining areas.
@@ -505,7 +625,7 @@ Some static-analysis tools write cache files. Run them in read-only mode or clea
 
 ---
 
-## Section 9: Quick Reference
+## Section 10: Quick Reference
 
 ### Auto-Scoping Commands
 
