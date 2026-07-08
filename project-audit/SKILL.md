@@ -45,7 +45,7 @@ audit:
   mode: auto                  # auto | interactive
   max_depth: deep             # quick | standard | deep
   max_duration_minutes: 20    # hard cap for a single audit run
-  output_dir: docs/99_audit   # where reports are written automatically
+  output_dir: docs/99_audits   # where reports are written automatically
   push_report: false          # audit phase never pushes; set true only for fix workflow
 ```
 
@@ -53,7 +53,7 @@ If the file is missing, use these defaults:
 - mode: auto
 - max_depth: deep
 - max_duration_minutes: 20
-- output_dir: docs/99_audit
+- output_dir: docs/99_audits
 - push_report: false
 
 ---
@@ -289,14 +289,14 @@ Common false positive patterns:
 
 ### 2.5 Write Report Automatically
 
-Write the report to `docs/99_audit/` without asking. Create the directory if it does not exist.
+Write the report to `docs/99_audits/` without asking. Create the directory if it does not exist.
 
 #### Naming Convention
 
 All audit files use the `99_` prefix so they sort at the end of `docs/`:
 
 ```
-docs/99_audit/
+docs/99_audits/
 ├── 99_00_security.md
 ├── 99_01_backend_health.md
 ├── 99_02_shell_health.md
@@ -315,7 +315,7 @@ Rules:
 There is exactly one deferred file per project:
 
 ```
-docs/99_audit/99_9999_deferred.md
+docs/99_audits/99_9999_deferred.md
 ```
 
 All deferred items must be moved there. Do not keep deferred items inside individual audit files.
@@ -584,11 +584,11 @@ Enter fix mode only when the user explicitly says:
 3. Apply fixes with `patch` or equivalent
 4. Verify fixes with grep/tests
 5. **Update the audit file status** for every fixed item: change `Open` → `Fixed`, add verification commit hash
-6. If an item is deferred, change its status to `Deferred` and move it to `docs/99_audit/99_9999_deferred.md`
+6. If an item is deferred, change its status to `Deferred` and move it to `docs/99_audits/99_9999_deferred.md`
 7. Write a verification note
 8. Only push if user confirms (`push_report: true` or explicit approval)
 
-**Critical rule:** After any fix, scan all audit files in `docs/99_audit/`. No item may remain `Open` if it has already been fixed or deferred.
+**Critical rule:** After any fix, scan all audit files in `docs/99_audits/`. No item may remain `Open` if it has already been fixed or deferred.
 
 ---
 
@@ -603,7 +603,7 @@ User may push during audit. Always `git pull --rebase` before push in fix mode.
 ### Wrong File Path
 `write_file` resolves `~/projects/X` to a different directory than `terminal` (`/home/hermes/` vs `/root/`). Always use `terminal` heredoc for file writes:
 ```bash
-cd ~/projects/<PROJECT> && cat > docs/99_audit/99_00_security.md << 'EOF'
+cd ~/projects/<PROJECT> && cat > docs/99_audits/99_00_security.md << 'EOF'
 ...content...
 EOF
 ```
