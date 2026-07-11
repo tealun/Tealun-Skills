@@ -4,12 +4,14 @@ description: 'Use for task execution, debugging, implementation, analysis, revie
 argument-hint: 'Describe the task goal, constraints, expected output, and validation method.'
 user-invocable: true
 disable-model-invocation: false
-version: 1.4.1
+version: 1.5.0
 ---
 
 # Tasker
 
-Tasker is a general workflow skill for end-to-end task execution across coding, ops, analysis, writing, planning, and review. It normalizes any request into a checkable contract, drives it through a seven-stage state machine, and enforces hard rules that close the gap between *saying* and *doing*.
+Tasker is a general workflow skill for end-to-end task execution across coding, ops, analysis, writing, planning, and review. It normalizes any request into a checkable contract, drives it through a seven-stage state machine, and enforces hard rules that close the gap between *saying*, *doing*, and *proving the intended outcome happened*.
+
+**Positioning:** verifiable outcome execution — every change has an artifact, every completion claim has evidence, and every user requirement has an outcome verdict.
 
 ## Decision Card（先读这张）
 
@@ -17,7 +19,7 @@ Settle four things before touching anything:
 1. **Level** — `S` read-only · `M` bounded change · `L` high blast-radius / production / irreversible (see Sizing). Unsure → `M`.
 2. **Gate** — `S` with no side effect may run directly; `M/L` and anything with side effects need the understanding check + Acceptance Gate first.
 3. **Output** — `compact` by default; `structured` for `L` / review / requested detail.
-4. **Proof** — every state change needs a tool call + artifact; `verify` runs the Tool-Call Audit before `close`.
+4. **Proof** — every state change needs a tool call + artifact; `verify` builds an Evidence Ledger and requirement-coverage verdict before `close`.
 
 ## When to Use
 
@@ -36,7 +38,7 @@ These are discovery hints, not required literal phrases. Infer intent from tone,
 2. Pick the execution path: code, analysis, writing, review, or ops.
 3. Classify `S/M/L` (see Sizing); default to `M` when unsure.
 4. Apply the gate before `execute` — mandatory when there are external side effects.
-5. Execute, then verify with post-tool checks and the Tool-Call Audit.
+5. Execute, then verify with post-tool checks, the Evidence Ledger, and requirement coverage.
 6. On failure or incomplete verify, retreat to the right earlier stage with a stated reason.
 7. Report a concise, checkable result with artifact map and residual risk.
 
@@ -58,7 +60,10 @@ Hard constraints that make "doing" verifiable:
 2. **Pre-Tool Completion Ban** — before a side-effect tool call returns, do not say "I have completed/modified/fixed…". If emitted by mistake, retract and correct to in-progress.
 3. **One Action One Artifact** — every executive sub-step must yield a verifiable artifact (file content, stdout/stderr, test output, log). No artifact → label `[pending]`, never `[done]`.
 4. **Post-Tool Verification (PTV)** — after every write/modify, immediately read back or run a confirming check (e.g. `Read` the file, `Grep` for the change, or a `Bash`/`PowerShell` command) to prove the change persisted correctly. (Tool names are illustrative; use whatever the environment actually provides.)
-5. **Tool-Call Audit** (canonical) — at `verify`, list every executive tool call, its artifact, and how it maps to `done_definition`. If the list is empty or does not cover `done_definition`, do not `close` — retreat to `execute`.
+5. **Tool-Call Audit** — at `verify`, list every executive tool call and its artifact. This proves execution occurred, but does not by itself prove correctness.
+6. **Evidence Ledger (canonical)** — map `Action → Artifact → Observation → Requirement → Verdict`. Every item in `done_definition` needs at least one relevant observation, not merely a changed file or successful command. Missing coverage means `Partially verified` or a retreat to `execute`; never silently claim `Confirmed`.
+7. **Outcome Evidence** — validation must observe the requested outcome or a defensible proxy. A build proves buildability, not business correctness; a grep proves text exists, not that behavior works.
+8. **Preserved Invariants** — for M/L changes, identify important behavior or boundaries that must remain unchanged and validate them in proportion to risk.
 
 ### Anti-Patterns（反例·别这么干）
 
@@ -105,8 +110,9 @@ intake → clarify → plan → confirm → execute → verify → close
 1. Never jump `plan` → `execute` without confirmation (see Confirmation Policy).
 2. Bare `/tasker` → one-line handshake, stop.
 3. `execute` forbids pure-text simulation. No suitable tool for a required change → retreat to `clarify`.
-4. `execute` → `verify` is anchored on the last executive tool call's returned result, not on subjective feeling.
-5. `verify` must run the Tool-Call Audit (Execution Guarantees #5).
+4. `execute` → `verify` is anchored on executive tool results, not subjective feeling.
+5. `verify` must run the Tool-Call Audit and Evidence Ledger, then check requirement coverage and preserved invariants.
+6. `close` must state the completion verdict and confidence; it may not upgrade partial evidence into a confirmed result.
 
 **Budget (countable, not wall-clock):** cap state transitions per level — `S` ≤ 4, `M` ≤ 8, `L` ≤ 15 (a retreat counts as a transition). Exceeding the cap forces `close` with `[budget-exceeded]` and: "任务过于复杂，建议分解或升级。" If an acceptance check gets no user response, auto-close: "无回复视为验收通过。随时可提出调整。"
 
@@ -143,15 +149,79 @@ Before `execute`, confirm all three: `done_definition` (what counts as done), `v
 - **Dissatisfaction gate:** define the corrected objective, the concrete fix path, and the response tone before `execute`. For escalation, define the current failure, recovery target, and next visible checkpoint.
 - **L external validation (mandatory):** verification must include at least one external anchor — passing automated tests, user acceptance, review by another agent/user, or static analysis. Self-check alone is insufficient for `L`.
 
+### Outcome Path（结果路径）
+
+The state machine describes **how Tasker works**. The Outcome Path describes **how the user's intended result occurs**. Do not merge them.
+
+For M/L tasks whose effect crosses components or steps, model the shortest relevant path:
+
+```text
+Input / original failure → changed component → downstream effect → observable outcome
+```
+
+Use it to choose validation points and detect shallow fixes. Example:
+
+```text
+expired session → resolver returns null → handler returns 401
+                → client re-authenticates → no 500/error log
+```
+
+- `S`: omit unless the answer depends on a multi-step causal claim.
+- `M`: trace the main success/failure path when the change has downstream effects.
+- `L`: trace all critical paths, including failure/recovery paths and external boundaries.
+
+### Completion Verdict & Confidence
+
+Use one completion verdict:
+
+| Verdict | Meaning |
+|---------|---------|
+| `Confirmed` | The requested outcome was directly validated with sufficient evidence |
+| `Likely` | Implementation and proxy checks support the outcome, but direct validation was unavailable |
+| `Partially verified` | Some acceptance requirements passed; others remain unverified |
+| `Not verified` | An artifact was produced, but its intended outcome was not validated |
+| `Blocked` | A required dependency, authority, input, or environment prevented completion |
+
+Add confidence (`High | Medium | Low`) for M/L. Confidence describes evidence quality, not task importance. Never use a confident tone to hide missing evidence.
+
+### Evidence Acceptance & Rejection
+
+Accept evidence only when it is current, relevant to the requirement, produced from the intended target/environment, and shows an observable result.
+
+Reject or downgrade completion evidence when:
+- A file was changed but behavior was not checked.
+- A command exited successfully but ran zero relevant tests/checks.
+- Tests passed but do not exercise the changed or originally failing path.
+- A function was checked without validating its caller or downstream effect when those matter.
+- A build is used as proof of business behavior.
+- A grep/read-back is used as proof that a bug is fixed.
+- A service starts, but the requested endpoint or workflow is not exercised.
+- Results come from stale caches, old build artifacts, a wrong directory, branch, target, or environment.
+- Only the happy path was tested when the request concerns a failure or edge case.
+
+### Symmetric Acceptance Check
+
+Before `close`, mirror the pre-execution Acceptance Gate:
+
+| Before execution | Before close |
+|------------------|--------------|
+| `done_definition` | Requirement coverage and verdict for each item |
+| `validation_method` | Actual command/observation and result |
+| `fail_condition` | Original failure reproduced, prevented, or explicitly untested |
+| Expected artifact | Actual artifact and location |
+| Scope boundary | Actual changed surfaces and unintended-change check |
+
+Also record preserved invariants and residual verification gaps. If any required row lacks evidence, retreat to `execute` when progress is possible; otherwise close with the accurate non-confirmed verdict.
+
 ### Depth Control
 
 Depth follows the level; Tasker owns it (`pua` only refines style/tone on top).
 
-| Level | File Reads | Testing | Boundary Checks | Docs / Rollback |
-|-------|-----------|---------|-----------------|-----------------|
-| `S` (depth 1) | target file only | syntax check | none | none |
-| `M` (depth 2) | related imports/config | build + basic tests | obvious error paths | brief notes on what changed |
-| `L` (depth 3) | full module + tests | full suite + static analysis | exhaustive inputs + edge cases | full doc + changelog + explicit rollback steps |
+| Level | File Reads | Testing | Outcome Evidence | Boundary Checks | Docs / Rollback |
+|-------|-----------|---------|------------------|-----------------|-----------------|
+| `S` (depth 1) | target file only | minimal relevant check | direct observation; no ledger ceremony | none | none |
+| `M` (depth 2) | related imports/config | build + relevant basic tests | Evidence Ledger + main Outcome Path when applicable | obvious error paths + preserved invariants | brief notes on what changed |
+| `L` (depth 3) | full module + tests | full suite + static analysis + external anchor | full ledger + critical success/failure paths | exhaustive inputs + preserved invariants | full doc + changelog + explicit rollback steps |
 
 ### Output Contract
 
@@ -162,7 +232,9 @@ Discipline (all modes): lead with the deliverable, not background; if it fits in
 Structured sections (when detail is needed): Result → Key Findings or Changes → Artifact Map (if multi-file) → Validation → Risk & Residual (if any) → Next Action.
 
 **Artifact Map** (multi-file): `File → role (main/aux/meta) → path → status (created/modified/verified)`.
-**Risk & Residual:** always disclose unverified assumptions, untested edge cases, and recommended follow-ups.
+**Risk & Residual:** always disclose unverified assumptions, untested edge cases, confidence limits, and recommended follow-ups.
+
+For M/L completion reports, include the verdict, confidence, requirement coverage, and concise Evidence Ledger. Keep S output lightweight: report the observation that supports the answer without adding empty ceremony.
 
 ### Review Rules
 
@@ -206,8 +278,8 @@ When a task is `L` and exceeds single-agent capacity, Tasker may suggest delegat
 - **plan:** read `auth/login` handler + its test file (depth 2); hypothesize null user object when session expired; fix + add regression test.
 - **confirm (M understanding check):** "我理解：要修复登录 500（会话过期时的空指针），验证方式是 auth 测试全过 + 并发 100 次无 500。对吗？[是/有偏差]" → User: 是.
 - **execute:** Edit handler (guard null), Write regression test → each call returns an artifact.
-- **verify:** run test suite (external anchor for the borderline case), then Tool-Call Audit — Edit→handler guard, Write→test, Bash→suite green; effects cover `done_definition`.
-- **close:** report changed files + test result; acceptance check.
+- **verify:** run the auth suite and the expired-session regression path; build the ledger: Edit→guard→401 observed→"no expired-session 500"→Confirmed. Verify normal login still succeeds as a preserved invariant.
+- **close:** `Confirmed / High confidence`; report changed files, requirement coverage, evidence, preserved behavior, and the acceptance check.
 
 ## Minimal Response Template
 
@@ -215,15 +287,18 @@ When a task is `L` and exceeds single-agent capacity, Tasker may suggest delegat
 State: <stage> | Level: <S/M/L> | done: <one-line done_definition>
 
 Result:
-- <one-line outcome>
+- <Confirmed|Likely|Partially verified|Not verified|Blocked> — <one-line outcome>
+- Confidence: <High|Medium|Low>  # M/L only
 
 Key Findings or Changes:
 - <main point>
 
 Validation:
 - <checks passed/failed>
-- Tool-Call Audit: <executive tool calls → artifacts>
-- Coverage Check: <do artifacts fully cover done_definition?>
+- Evidence Ledger: <action → artifact → observation → requirement → verdict>
+- Requirement Coverage: <each done_definition item → verdict>
+- Preserved Invariants: <important unchanged behavior and evidence>  # M/L changes
+- Verification Gaps: <none or explicit limits>
 
 Next Action:
 - <single recommended next step>

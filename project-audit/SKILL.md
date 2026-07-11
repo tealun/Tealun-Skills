@@ -4,7 +4,7 @@ description: >
   Universal automated project audit skill — code review, security scan, architecture health check,
   and document management. Works with any tech stack (React/Vue/Node/Go/Python/DB/etc).
   Audit phase is fully automated; fix phase is separate and requires explicit confirmation.
-version: 2.4.1
+version: 2.5.0
 ---
 
 # Universal Project Audit
@@ -12,6 +12,8 @@ version: 2.4.1
 A methodology for auditing any codebase: identifying risks, verifying findings, and maintaining code health over time.
 
 **Core principle:** The audit phase (discover + judge + report) runs automatically without user confirmation. The fix phase (modify code) is a separate workflow and always requires explicit approval.
+
+**Positioning:** **12-dimensional coverage × critical-path penetration × evidence-closed verification.** The 12 dimensions remain the coverage and communication backbone. Critical paths connect them across real system behavior; the evidence protocol makes every reported conclusion reviewable.
 
 ## When to Use
 
@@ -142,13 +144,17 @@ Present this in the final report header. Do **not** stop to ask the user.
 
 ## Section 2: Audit Pipeline
 
-### 2.1 Pull Latest Code
+### 2.1 Establish a Stable Audit Baseline
 
 ```bash
 cd <project-path>
-git pull
+git status --short
+git branch --show-current
+git rev-parse HEAD
 git log --oneline -15
 ```
+
+Auditing is read-only by default. Do **not** run `git pull`, checkout another branch, clean files, install packages, or otherwise change the worktree merely to start an audit. Record the branch, HEAD, dirty state, and whether uncommitted changes are included. Synchronize from a remote only when the user explicitly requests it.
 
 ### 2.2 Load Context
 
@@ -175,7 +181,7 @@ Reference `references/deep-audit-checklist.md` for command templates.
 
 #### Standard Audit (score 3–5)
 
-Run 5 specialist agents in two batches (max 3 concurrent):
+Cover these 5 specialist roles. When multi-agent work is available and explicitly allowed, they may run in two batches (max 3 concurrent). Otherwise the primary agent performs the same roles sequentially; coverage must not depend on delegation.
 
 **Batch 1 — Core Risks:**
 1. **Security Agent** — Auth, injection, XSS, IDOR, data exposure, race conditions, rate limiting; **tenant/role isolation (multi-tenant, RLS, cross-account access), log redaction of PII** (dims 3/6)
@@ -212,7 +218,7 @@ Use the time cap from config. If the cap is reached, stop and report findings so
 
 #### 12-Dimension Coverage Map
 
-The specialist agents above are the *executors*; these 12 dimensions are the *checklist they must not silently drop*. Each dimension maps to an owning agent and one must-check. Use this to confirm nothing was skipped before writing the report.
+The 12 dimensions are the skill's **coverage backbone and primary communication advantage**. Specialist roles are possible executors, not the product model. No execution strategy may rename, collapse, replace, or silently drop the 12 dimensions. Use the map to prove breadth before writing the report.
 
 | # | Dimension | Owner agent | Must-check (one line) |
 |---|-----------|-------------|-----------------------|
@@ -256,15 +262,78 @@ The 12 dimensions are a superset. **A dimension applies only when the project's 
 
 When the shape is ambiguous, include the conditional dimension but flag it `N/A?` and let evidence confirm or drop it. Do not block the audit to ask.
 
-### 2.4 Verify Agent Reports (CRITICAL)
+#### Critical-Path Penetration
 
-**Never trust sub-agent reports blindly.** Every finding must be manually verified before entering the final report.
+Dimensions describe **what** is covered; critical paths show **how risks cross boundaries**. For Standard and Deep audits, identify the system's most consequential paths from available code and documentation. Deep audits must trace every high-risk path; Standard audits trace at least the highest-risk path. Quick scans may omit path tracing but must say so.
+
+Typical paths include authentication, password recovery, payment/refund, entitlement, file upload/processing, role or tenant changes, webhook handling, import/export, and AI input → generation → persistence → re-injection.
+
+Trace each selected path through the applicable stages:
+
+```text
+entry → validation → identity/authz → business rules → data write
+      → external call/async work → user-visible result → logging/recovery
+```
+
+For every path, record:
+- System/user goal and protected property
+- Steps and code locations
+- Applicable dimensions
+- Confirmed controls (strengths)
+- Findings and likely risks
+- Verification gaps or blockers
+- Overall health: `Healthy | At risk | Broken | Not verified`
+
+Critical paths are **not a 13th dimension**. They are the cross-dimensional analysis method.
+
+### 2.4 Evidence Protocol & Finding Verification (CRITICAL)
+
+**Never trust keyword hits, tool output, or sub-agent reports blindly.** Every candidate finding must pass this evidence state machine before entering the final report:
+
+```text
+Candidate → Context Inspected → Reproduced or Statically Proven
+          → Severity Calibrated → Accepted or Rejected → Reported
+```
 
 Verification process:
-1. For each reported issue, `read_file` or `grep` to confirm it exists
-2. Check: file path correct? Line number accurate? Severity appropriate?
-3. Mark each finding: ✅ Verified / ❌ False positive (explain why)
-4. Only verified findings enter the final report
+1. Inspect sufficient surrounding code and the reachable call/data path.
+2. Reproduce the behavior when safe and feasible; otherwise construct a concrete static proof.
+3. Check that file, line, commit, runtime/config applicability, impact, and severity are accurate.
+4. Record the validation command or inspection method and its actual result.
+5. Classify confidence and conclusion type.
+6. Mark the candidate `Accepted` or `Rejected` with a reason. Only accepted findings enter the findings table.
+
+Every accepted finding must contain:
+- Trigger and relevant context
+- Reproduction or static proof
+- Expected invariant and actual behavior
+- Impact and affected scope
+- Evidence location and validation method
+- Severity, confidence, and unverified assumptions
+
+#### Conclusion and Confidence Types
+
+| Type | Meaning |
+|------|---------|
+| `Confirmed` | Reproduced or directly proven through a reachable code/config path |
+| `Likely` | Strong static evidence exists, but runtime confirmation is unavailable |
+| `Exposure` | A dangerous surface exists, but no exploitable path has been established |
+| `Verification gap` | An important property could not be checked with available evidence |
+| `N/A` | The relevant system surface does not exist |
+
+Confidence (`High | Medium | Low`) is separate from severity (`P0 | P1 | P2`). A high-impact hypothesis may be `P0 / Low confidence`; a confirmed minor issue may be `P2 / High confidence`.
+
+#### Evidence Rejection Rules
+
+Reject or downgrade evidence when:
+- It is only a keyword hit without surrounding context or reachability.
+- A dangerous function exists but no production call path reaches it.
+- Missing tests are used to claim the underlying behavior is broken.
+- A dependency advisory is reported without checking the resolved version and reachable usage.
+- The line number or content belongs to another commit.
+- Generated code, examples, fixtures, vendored files, or inactive configuration are mistaken for production behavior.
+- Tool or agent output cannot be reproduced in the current audit baseline.
+- Severity is inferred from a label rather than impact and exploitability.
 
 Batch verification pattern:
 ```python
@@ -347,15 +416,26 @@ When an item is fixed or deferred, update its status in the audit file immediate
 ## Scope
 - Range: <commit-old>..<commit-new>
 - Files: <N> changed
+- Baseline: <branch>@<HEAD>; worktree <clean|dirty>; uncommitted changes <included|excluded>
 - Auto-selected depth: <quick|standard|deep>
 - Risk score: <N> (<signals>)
+
+## System Goal & Critical Paths
+- Goal / protected properties: ...
+- Path health: ...
+
+## Confirmed Strengths
+- <verified control worth preserving>
+
+## Verification Gaps
+- <property not checked, why, and what evidence is needed>
 
 ## Findings
 
 ### P0 — Must Fix
-| ID | Status | Title | File | Line | Evidence | Fix |
-|----|--------|-------|------|------|----------|-----|
-| S-P0-1 | Open | SQL injection | routes/query.ts | 45 | Unparameterized query | Use parameterized query |
+| ID | Type | Confidence | Status | Title | Path/Dimension | File | Line | Evidence | Fix |
+|----|------|------------|--------|-------|----------------|------|------|----------|-----|
+| S-P0-1 | Confirmed | High | Open | SQL injection | Search / Security | routes/query.ts | 45 | Reachable unparameterized query; validation command... | Use parameterized query |
 
 ### P1 — Should Fix Soon
 ...
@@ -369,7 +449,23 @@ When an item is fixed or deferred, update its status in the audit file immediate
 
 ## Doc Updates Needed
 - <specs/schemas to update>
+
+## Evidence Log
+- <candidate → validation → accepted/rejected>
 ```
+
+#### Audit Acceptance Checks
+
+Before presenting the report, verify all of the following:
+- Every applicable dimension has a result; absent surfaces are explicitly `N/A — reason`.
+- Every required critical path has a health result or a named blocker.
+- Every accepted finding has reproducible evidence or a concrete static proof.
+- All file/line references match the recorded baseline.
+- Severity and confidence were calibrated separately.
+- Candidate findings were accepted or rejected; raw scanner output is not presented as fact.
+- Confirmed controls/strengths that should be preserved are recorded.
+- Unrun tests, unavailable environments, credentials, external systems, and other evidence limits are explicit.
+- Audit tools did not leave unintended worktree changes.
 
 ### 2.6 Present Findings
 
@@ -389,7 +485,7 @@ Do not ask "What do you want to do next?" unless the user is entering the fix wo
 When user says "已修复" / "修好了" / "verify fixes" after a previous audit.
 
 Process:
-1. `git pull` → identify new range (last audit commit → new HEAD)
+1. Record current HEAD and compare it with the baseline stored in the previous audit. Fetch/pull only if the user explicitly requested remote synchronization.
 2. `git diff <old>..<new>` — see what changed
 3. Batch verify each previous finding
 4. **Update status** in the original audit file for every fixed/deferred item
@@ -514,7 +610,7 @@ When proposing a fix, the fix itself must obey the north star: prefer the smalle
 
 ## Section 6: Document Management
 
-### 5.1 Status Sync
+### 6.1 Status Sync
 
 When user asks to "梳理文档" / "check doc status":
 
@@ -529,9 +625,9 @@ Process:
    - "Pending migration" → check database/server for actual status
 4. Update document headers with `patch`
 5. Write next-steps summary
-6. Commit all updates in one commit
+6. If the user explicitly requested document updates, apply them; commit only with separate explicit authorization
 
-### 5.2 Document Decomposition
+### 6.2 Document Decomposition
 
 When a doc becomes a "junk drawer" mixing bugs, features, branding, tech specs:
 
@@ -671,6 +767,7 @@ npx tsc --noEmit 2>&1 | grep "error TS" | wc -l
 ## Scope
 - Commits: <old>..<new> (<N> commits)
 - Files: <M> changed
+- Baseline: <branch>@<HEAD>; worktree <clean|dirty>; uncommitted changes <included|excluded>
 - Auto-selected depth: <quick|standard|deep>
 - Risk score: <N>
 
@@ -678,10 +775,20 @@ npx tsc --noEmit 2>&1 | grep "error TS" | wc -l
 - P0: <N> | P1: <N> | P2: <N>
 - New issues: <N> | Fixed from previous: <N>
 
+## System Goal & Critical Paths
+- Goal / protected properties: <...>
+- <path>: <Healthy|At risk|Broken|Not verified> — dimensions <...>
+
+## Confirmed Strengths
+- <verified control worth preserving>
+
+## Verification Gaps
+- <what could not be checked, why, and evidence needed>
+
 ## P0 — Must Fix
-| ID | Status | Title | File | Line | Evidence | Fix |
-|----|--------|-------|------|------|----------|-----|
-| S-P0-1 | Open | SQL injection | routes/query.ts | 45 | Unparameterized query | Use parameterized query |
+| ID | Type | Confidence | Status | Title | Path/Dimension | File | Line | Evidence | Fix |
+|----|------|------------|--------|-------|----------------|------|------|----------|-----|
+| S-P0-1 | Confirmed | High | Open | SQL injection | Search / Security | routes/query.ts | 45 | Reachable query + validation result | Use parameterized query |
 
 ## P1 — Should Fix
 ...
@@ -690,8 +797,13 @@ npx tsc --noEmit 2>&1 | grep "error TS" | wc -l
 ...
 
 ## Verification Log
-- ✅ S-P0-1 — fixed in commit <hash>
-- ❌ B-P1-1 — false positive (reason)
+- Accepted: S-P0-1 — <reproduction/static proof>
+- Rejected: B-P1-1 — <false-positive reason>
+
+## 12-Dimension Coverage
+- 1 Architecture: <result>
+- ...
+- 12 Deploy & Ops: <result>
 
 ## Doc Updates Needed
 - <specs/schemas to update>
