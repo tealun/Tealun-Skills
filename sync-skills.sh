@@ -4,7 +4,8 @@
 # 用法:
 #   ./sync-skills.sh                # 同步仓库里所有含 SKILL.md 的技能
 #   ./sync-skills.sh tasker         # 只同步指定技能
-#   ./sync-skills.sh tasker project-audit
+#   ./sync-skills.sh planning       # 同步 /planning 前期规划技能
+#   ./sync-skills.sh tasker project-audit planning
 #   DRY_RUN=1 ./sync-skills.sh ...  # 只打印将要做的动作，不实际拷贝
 #
 # 特性:
@@ -12,6 +13,7 @@
 #   - 目标均为「skills 文件夹 + 按需加载」模式 (Claude/Codex/Kimi 及 .agents 通用约定)：
 #     系统先看 skill 清单(名称/简介/路径)，点名或匹配时才读 SKILL.md，故直接 overlay 拷贝即可
 #   - .agents/skills 是跨 agent 的通用共享目录 (Codex 等会读取)
+#   - 支持本仓库里的快捷技能: /tasker, /planning 等
 #   - overlay 拷贝: 覆盖同名文件，保留目标目录里仓库没有的文件 (如 codex 的 _meta.json)
 #   - 不含 Gemini(单文件 GEMINI.md)与 Cursor(项目级 .mdc rules)——加载机制不同，非本脚本目标
 set -euo pipefail
