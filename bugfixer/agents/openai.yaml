@@ -1,0 +1,7 @@
+interface:
+  display_name: "Bugfixer"
+  short_description: "Fix full-stack development bugs from screenshots, logs, failed saves, API errors, and regressions."
+  default_prompt: "Use $bugfixer to diagnose and fix this bug end to end, preserving the latest product intent and verifying the result."
+
+policy:
+  allow_implicit_invocation: true
