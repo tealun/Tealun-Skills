@@ -46,10 +46,8 @@ This release introduces **7 production-hardening features** that transform Taske
 - Added `pagination` mode for outputs exceeding 2000 tokens (auto-split with `[Part N/M]` and table of contents).
 - Added **Risk & Residual** disclosure section (unverified assumptions, edge cases, follow-up recommendations).
 
-#### 6. Built-In Execution Depth Control (Replaces External PUA Dependency)
+#### 6. Built-In Execution Depth Control
 - **3 depth levels** mapped to S/M/L: file-read depth, test coverage, boundary checks, documentation, and rollback preparation.
-- PUA is now an **optional style layer** (tone/verbosity) rather than a required control layer.
-- Tasker is self-sufficient when PUA is unavailable.
 
 #### 7. Multi-Agent Handoff Protocol
 - **Escalation triggers:** Large tasks auto-suggest delegation to `swarm-coding`, `batch-download`, `deep-research-swarm`, or `cron`.
@@ -62,7 +60,6 @@ This release introduces **7 production-hardening features** that transform Taske
 
 - **Backward Compatible:** All v1.1.1 behaviors are preserved. New features are additive.
 - **No new credentials or binaries required.**
-- **PUA users:** If you use `pua`, it continues to work as a style layer. No breaking changes.
 
 ---
 
@@ -113,7 +110,7 @@ openclaw skills update tealun/tasker
 | **Risk Model** | Context-aware sizing with session/path/user modifiers |
 | **Quality** | Root-cause tagging and proactive improvement tracking |
 | **Output** | Multi-file artifact map, pagination, and risk disclosure |
-| **Depth Control** | Built-in depth levels (1/2/3) decoupled from external PUA |
+| **Depth Control** | Built-in depth levels (1/2/3) |
 | **Interoperability** | Multi-agent handoff protocol with `tasker_handoff.md` |
 
 ---
@@ -122,8 +119,6 @@ openclaw skills update tealun/tasker
 
 - **ClawHub:** `https://clawhub.ai/tealun/tasker`
 - **SkillHub:** `https://skillhub.cloud.tencent.com/skills/tasker`
-- **Project:** `https://github.com/tanweai/pua` (optional PUA layer)
-
 ---
 
 *Tasker v1.2.0 — Execute with discipline. Retreat with reason. Escalate with clarity.*

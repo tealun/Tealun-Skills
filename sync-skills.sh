@@ -4,9 +4,9 @@
 # Usage:
 #   ./sync-skills.sh                         # sync all repo folders that contain SKILL.md
 #   ./sync-skills.sh tasker                  # sync one skill
-#   ./sync-skills.sh planning                # sync /planning
+#   ./sync-skills.sh planner                 # sync /planner
 #   ./sync-skills.sh bugfixer                # sync /bugfixer
-#   ./sync-skills.sh tasker project-audit planning bugfixer
+#   ./sync-skills.sh tasker auditor planner bugfixer
 #   DRY_RUN=1 ./sync-skills.sh bugfixer      # print actions without writing
 #   ./sync-skills.sh --list-targets          # show detected compatible CLI targets
 #   ./sync-skills.sh --target-env wsl        # explicitly sync the WSL environment
@@ -179,10 +179,27 @@ for skill in "${SKILLS[@]}"; do
   for i in "${!TARGETS[@]}"; do
     t="${TARGETS[$i]}"
     dst="$t/$skill"
+    legacy_names=()
+    case "$skill" in
+      planner) legacy_names=("planning") ;;
+      auditor) legacy_names=("project-audit") ;;
+    esac
     if [ "$DRY_RUN" = "1" ]; then
+      for legacy_name in "${legacy_names[@]}"; do
+        legacy_dst="$t/$legacy_name"
+        [ -d "$legacy_dst" ] && echo "  [dry] ${TARGET_LABELS[$i]}: remove renamed skill $legacy_dst"
+      done
       echo "  [dry] ${TARGET_LABELS[$i]}: overlay $src/* -> $dst"
       continue
     fi
+
+    for legacy_name in "${legacy_names[@]}"; do
+      legacy_dst="$t/$legacy_name"
+      if [ -d "$legacy_dst" ]; then
+        rm -rf -- "$legacy_dst"
+        echo "  migrated ${TARGET_LABELS[$i]}: removed $legacy_name"
+      fi
+    done
 
     mkdir -p "$dst"
     cp -r "$src"/* "$dst"/

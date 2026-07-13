@@ -7,6 +7,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $RepoDir = $PSScriptRoot
 $DryRun = $env:DRY_RUN -eq '1'
+$RenamedSkills = @{
+    'planner' = @('planning')
+    'auditor' = @('project-audit')
+}
 
 function Test-CliInstalled {
     param([string[]]$Commands, [string[]]$ConfigDirs)
@@ -93,9 +97,32 @@ foreach ($skill in $Skills) {
 
     foreach ($target in $targets) {
         $destination = Join-Path $target.Path $skill
+        $legacyNames = if ($RenamedSkills.ContainsKey($skill)) {
+            @($RenamedSkills[$skill])
+        } else {
+            @()
+        }
         if ($DryRun) {
+            foreach ($legacyName in $legacyNames) {
+                $legacyDestination = Join-Path $target.Path $legacyName
+                if (Test-Path -LiteralPath $legacyDestination -PathType Container) {
+                    "  [dry] $($target.Label): remove renamed skill $legacyDestination"
+                }
+            }
             "  [dry] $($target.Label): overlay $source/* -> $destination"
             continue
+        }
+
+        foreach ($legacyName in $legacyNames) {
+            $legacyDestination = [System.IO.Path]::GetFullPath((Join-Path $target.Path $legacyName))
+            $targetRoot = [System.IO.Path]::GetFullPath($target.Path)
+            if (-not $legacyDestination.StartsWith($targetRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {
+                throw "Refusing to remove path outside target root: $legacyDestination"
+            }
+            if (Test-Path -LiteralPath $legacyDestination -PathType Container) {
+                Remove-Item -LiteralPath $legacyDestination -Recurse -Force
+                "  migrated $($target.Label): removed $legacyName"
+            }
         }
 
         New-Item -ItemType Directory -Path $destination -Force | Out-Null

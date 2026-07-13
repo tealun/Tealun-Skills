@@ -1,0 +1,7 @@
+interface:
+  display_name: "Auditor"
+  short_description: "Audit project risks with evidence-backed findings."
+  default_prompt: "Use $auditor to audit this project and report evidence-backed risks without modifying product code."
+
+policy:
+  allow_implicit_invocation: true

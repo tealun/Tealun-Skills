@@ -1,7 +1,0 @@
-interface:
-  display_name: "Planning"
-  short_description: "Plan project docs, schema, migrations, and audits."
-  default_prompt: "Use $planning to turn my early project idea into a complete pre-development planning system."
-
-policy:
-  allow_implicit_invocation: true
