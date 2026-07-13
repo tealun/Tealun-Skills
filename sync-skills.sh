@@ -9,6 +9,8 @@
 #   ./sync-skills.sh tasker project-audit planning bugfixer
 #   DRY_RUN=1 ./sync-skills.sh bugfixer      # print actions without writing
 #   ./sync-skills.sh --list-targets          # show detected compatible CLI targets
+#   ./sync-skills.sh --target-env wsl        # explicitly sync the WSL environment
+#   ./sync-skills.sh --target-env all         # sync Windows and WSL when run in WSL
 #
 # Notes:
 #   - Detects installed compatible CLIs from PATH or their local config directory.
@@ -21,6 +23,68 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRY_RUN="${DRY_RUN:-0}"
+TARGET_ENV="auto"
+ARGS=()
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --target-env)
+      [ "$#" -ge 2 ] || { echo "--target-env requires: auto, windows, wsl, or all" >&2; exit 2; }
+      TARGET_ENV="$2"
+      shift 2
+      ;;
+    --target-env=*)
+      TARGET_ENV="${1#*=}"
+      shift
+      ;;
+    *)
+      ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+set -- "${ARGS[@]}"
+
+case "$TARGET_ENV" in
+  auto|windows|wsl|all) ;;
+  *) echo "Invalid --target-env: $TARGET_ENV (expected auto, windows, wsl, or all)" >&2; exit 2 ;;
+esac
+
+IS_WSL=0
+if grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then
+  IS_WSL=1
+fi
+
+run_windows_sync() {
+  command -v powershell.exe >/dev/null 2>&1 || {
+    echo "Cannot sync Windows: powershell.exe is unavailable from this environment." >&2
+    return 1
+  }
+  local windows_script
+  windows_script="$(wslpath -w "$REPO_DIR/sync-skills.ps1")"
+  echo "WSL detected: delegating Windows sync to $windows_script"
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$windows_script" "$@"
+}
+
+# A Bash process inside WSL has a Linux HOME even when launched from Windows.
+# Default to the Windows companion so an unqualified run cannot silently write
+# to /root. WSL writes require an explicit --target-env wsl (or all).
+if [ "$IS_WSL" = "1" ]; then
+  if [ "$TARGET_ENV" = "auto" ] || [ "$TARGET_ENV" = "windows" ]; then
+    run_windows_sync "$@"
+    exit $?
+  fi
+  if [ "$TARGET_ENV" = "all" ]; then
+    run_windows_sync "$@"
+    echo
+  fi
+elif [ "$TARGET_ENV" = "windows" ] || [ "$TARGET_ENV" = "all" ]; then
+  echo "--target-env $TARGET_ENV is only supported by this script when running in WSL; use sync-skills.ps1 on Windows." >&2
+  exit 2
+elif [ "$TARGET_ENV" = "wsl" ]; then
+  echo "--target-env wsl requires WSL." >&2
+  exit 2
+fi
 
 TARGETS=()
 TARGET_LABELS=()
