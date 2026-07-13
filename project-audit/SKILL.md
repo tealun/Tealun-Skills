@@ -4,6 +4,9 @@ description: >
   Universal automated project audit skill — code review, security scan, architecture health check,
   and document management. Works with any tech stack (React/Vue/Node/Go/Python/DB/etc).
   Audit phase is fully automated; fix phase is separate and requires explicit confirmation.
+argument-hint: "Describe the project or path to audit, the concerns to prioritize, and the desired report depth."
+user-invocable: true
+disable-model-invocation: false
 version: 2.5.0
 ---
 
