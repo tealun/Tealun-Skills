@@ -4,7 +4,7 @@ description: 'Use for task execution, debugging, implementation, analysis, revie
 argument-hint: 'Describe the task goal, constraints, expected output, and validation method.'
 user-invocable: true
 disable-model-invocation: false
-version: 1.6.0
+version: 1.7.0
 ---
 
 # Tasker
@@ -19,6 +19,7 @@ Settle these before acting:
 2. **Contract** — goal, constraints, expected artifact, validation, and stop condition.
 3. **Gate** — any side effect is at least `M` and requires confirmation before execution.
 4. **Proof** — choose observations that demonstrate the requested outcome, not merely activity.
+5. **Target** — name the exact workspace/repository and prove it matches the user's subject before the first write.
 
 Default to compact output. Use structured output for `L`, reviews, or when the user asks for detail.
 
@@ -74,8 +75,41 @@ Before `execute`, define:
 - `validation_method` — a command, test, query, or direct observation.
 - `fail_condition` — what result means the attempt did not work.
 - `scope_boundary` — surfaces allowed to change and important behavior to preserve.
+- `target_identity` — resolved absolute root, repository/project name, and evidence that this is the user's intended target.
 
 Missing any material item means remain in `clarify` or `plan`. `L` requires at least one external anchor such as automated tests, static analysis, user acceptance, or independent review.
+
+### Workspace Identity Gate
+
+The current working directory is environment context, not proof of user intent. Before the first mutation in `M/L` work:
+
+1. Resolve and record the absolute target root, repository name, branch or equivalent identity, and the user/evidence phrase that selects it.
+2. If discovery finds a sibling repository that appears to match, treat it as a candidate only. Inspect it read-only, then obtain a short confirmation before switching the mutation target unless the user already named that exact repository/path.
+3. When conversation context, an attachment, and the current workspace point at different projects, stop at `clarify`; do not choose from recency, directory name, or apparent feature fit alone.
+4. Include the target root in the understanding check whenever work crosses repositories or starts outside the supplied workspace root.
+
+Trigger this gate immediately—not only before an intentional repository switch—when any signal suggests the conversation may have crossed projects:
+
+- the requested feature is absent from the current repository but appears in a sibling or recently used repository;
+- the attachment, product vocabulary, paths, stack, or named entities conflict with the current workspace;
+- the user says “another project,” “not this one,” “the previous project,” or otherwise changes project reference;
+- the agent has to guess whether the user means the workspace, a discovered repository, or a repository mentioned earlier;
+- planned files would live outside the confirmed root.
+
+At that moment, freeze mutation and say what conflicts: `current workspace = <A>; suspected target = <B>; evidence = <X>`. Ask the user to confirm the target. A plausible guess, even a correct one, is not confirmation when project communication may be crossed.
+
+For deictic corrections such as “这个项目不对”“另一个项目”“就是刚才那个,” first write the concrete mapping: `this = <path/project>`, `other = <path/project>`. If more than one mapping is plausible, ask the user before any write, commit, revert, cleanup, or history operation.
+
+### Post-Error Restraint Gate
+
+Discovering or being told that the target may be wrong authorizes containment only, not corrective mutation. The agent may stop processes and collect read-only status, but must not immediately commit, revert, delete, move, cherry-pick, restore, or “undo its own work.” First report:
+
+- what target had been confirmed or assumed;
+- every repository and path touched;
+- committed versus uncommitted artifacts;
+- the exact proposed recovery action and its effect.
+
+Wait for the user to confirm both the path mapping and recovery action. Urgency, embarrassment, user anger, or confidence that the agent caused the changes does not waive this gate.
 
 ## Scope and Initiative
 
@@ -97,6 +131,7 @@ Initiative means completing the whole required path, not turning one request int
 4. **Post-Tool Verification** — immediately read back or run a relevant check after every write.
 5. **Plan alignment** — when evidence requires a different plan, stop, update the plan, and re-confirm if scope or risk changes materially.
 6. **No invention** — never fabricate files, commands, observations, or test results.
+7. **Target lock** — after confirmation, all writes stay under `target_identity`. Discovery of a more plausible repository invalidates the plan and returns to `clarify`; it does not authorize an automatic switch.
 
 Batch independent reads and checks. Keep dependent actions sequential. A plan without an executable tool for a required change must retreat to `clarify`.
 
@@ -151,6 +186,8 @@ When the user is dissatisfied:
 3. Tag the cause as `hallucination`, `omission`, `misread`, `tool-failure`, `user-ambiguity`, or `logic-flaw`.
 4. Apply a concrete safeguard: stricter read-back, broader discovery, verbatim evidence, return-code checks, explicit assumptions, or a validated reasoning chain.
 
+If dissatisfaction concerns the selected project or repository, freeze all mutations immediately. Report the confirmed target, touched repositories, commits, and uncommitted files. Do not “repair” the mistake by reverting or moving changes until the user confirms the concrete path mapping and recovery action.
+
 If the same cause recurs twice in the session, make its safeguard mandatory for the remaining work. Do not argue with frustration or hide uncertainty.
 
 ## Safety and Resumability
@@ -160,3 +197,4 @@ If the same cause recurs twice in the session, make its safeguard mandatory for 
 - Do not treat unchanged external state as failure when monitoring or waiting.
 - Carry this state line across long work or context compaction: `State: <stage> | Level: <S/M/L> | done: <done_definition>`.
 - On resume, continue from current artifacts and evidence; do not restart completed work.
+- A repository switch or ambiguous project correction invalidates the current `target_identity`; reacquire the Workspace Identity Gate before continuing.

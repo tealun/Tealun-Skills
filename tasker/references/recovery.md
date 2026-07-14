@@ -23,6 +23,22 @@ Changing a timeout, renaming a variable, or rerunning with minor flags is not a 
 
 Every retreat states why the previous stage is no longer valid. The main retry and retreat caps remain authoritative.
 
+## Wrong-Workspace Containment
+
+Enter containment as soon as the agent suspects context crossed projects; do not wait for proof or a user complaint. Suspicion includes incompatible product vocabulary, attachments that do not match the workspace, a feature found only in a sibling repository, ambiguous “this/other/previous project” language, or a required write outside the confirmed root.
+
+When triggered:
+
+1. Stop all writes across every involved repository.
+2. Capture read-only state for each repository: absolute root, branch/HEAD, clean or dirty state, commits created during the task, and uncommitted paths touched by the agent.
+3. Translate ambiguous references into explicit candidates, for example `“this project” = A?` and `“other project” = B?`. Do not infer which mapping the user meant from anger, recency, or feature similarity.
+4. Ask the user to confirm both the intended target and the disposition of each artifact: keep, revert uncommitted edits, revert a commit, cherry-pick, or leave untouched. Until answered, do not take the apparently obvious recovery action.
+5. Perform only the confirmed recovery. Re-check every repository afterward and report exact remaining state.
+
+Never use a destructive recovery command merely because the agent believes it caused the changes. Existing dirty work may belong to the user, and an apparently wrong repository may actually be the intended sibling project. Containment is automatic; rollback is not.
+
+The first response after detecting a possible wrong target must be deliberately non-executive: freeze, inventory, map, ask. Do not combine the diagnosis and recovery in one tool sequence.
+
 ## Blocked Report
 
 Use `Blocked` only when a dependency, authority, input, or environment prevents meaningful progress. Report:
@@ -46,4 +62,5 @@ Do not replace this with a vague request for the user to “try manually.”
 | `tool-failure` | check return codes and distinguish environment failure from task failure |
 | `user-ambiguity` | state the assumption and obtain confirmation |
 | `logic-flaw` | write competing hypotheses and test the causal chain |
+| `wrong-target` | freeze writes, inventory every touched repository, make path mappings explicit, and require recovery confirmation |
 

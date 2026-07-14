@@ -60,11 +60,23 @@ Reject or downgrade evidence when:
 
 Identify behavior that must remain unchanged and validate it in proportion to risk. Typical invariants include public API compatibility, normal-path behavior, data shape, permissions, performance boundaries, and rollback viability.
 
+For repository work, workspace identity is an invariant. Verification must show that:
+
+- every changed path resolves under the confirmed `target_identity`;
+- the reported branch/HEAD belongs to that target;
+- no sibling or discovery-only repository was mutated;
+- any intentional cross-repository artifact was separately authorized.
+
+`git status` from one repository is insufficient when more than one repository was inspected or touched. Record status for every involved root.
+
+If a cross-project signal occurred, verification must also include the user's explicit target confirmation. Repository similarity, successful tests, or finding the expected feature cannot substitute for that confirmation.
+
 ## Implementation Review
 
 Answer with concrete observations:
 
 1. **Plan alignment** — did actual changes stay within confirmed scope?
+   - Confirm the repository/path identity as well as the feature scope.
 2. **Contract safety** — did interfaces, schemas, configuration, or callers change, and were consumers checked?
 3. **Boundary behavior** — were relevant empty, invalid, failure, timeout, concurrency, and rollback paths considered?
 4. **Fix quality** — was the cause removed or only the symptom contained? If mitigation was necessary, state its limits and follow-up.
