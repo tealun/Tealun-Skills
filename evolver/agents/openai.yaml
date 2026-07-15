@@ -1,7 +1,7 @@
 interface:
   display_name: "Evolver"
-  short_description: "Turn project lessons into durable regression guards."
-  default_prompt: "Use $evolver to close this verified project cycle, persist the useful lesson when safe, and return a concise result."
+  short_description: "Track a full work cycle and turn its lessons into durable guards."
+  default_prompt: "Use $evolver to review the full relevant work cycle, reconcile its lesson candidates, persist the worthwhile verified improvements when safe, and return a concise result."
 
 policy:
   allow_implicit_invocation: true

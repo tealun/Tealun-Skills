@@ -4,7 +4,15 @@ Use this reference for root-cause classification, systemic-action selection, or 
 
 ## Evolution Card and Ledgers
 
-Capture internally:
+Begin with a cycle-wide candidate register when work spans multiple turns:
+
+```text
+Candidate ID | event/turn | fact/correction | evidence | possible failed control | status
+```
+
+Populate it from the earliest relevant goal through verification, including later evidence that supersedes or rejects earlier candidates. Use `Confirmed`, `Inference`, `Unknown`, `Superseded`, or `Rejected`. Merge repeated symptoms by shared failed control. Do not rank by conversational recency.
+
+For shortlisted confirmed candidates, capture internally:
 
 ```text
 Trigger:
@@ -69,6 +77,8 @@ Order actions by:
 3. prerequisites for other guards;
 4. low-cost improvements with broad proven coverage;
 5. explicitly deferred items with revisit conditions.
+
+Before selecting, compare every confirmed candidate from the cycle. Record internally why omitted candidates are duplicate, superseded, weakly evidenced, low recurrence, already guarded, or disproportionate to persist. This prevents the last visible lesson from becoming the default merely because it is convenient.
 
 ## Closure Calibration
 

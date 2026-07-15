@@ -41,6 +41,8 @@ Keep evolution records separate from audit reports. Link the source audit item r
 
 Entries must distinguish confirmed evidence from inference, link their source where practical, and remain concise. Avoid empty directory scaffolding for one low-risk lesson.
 
+The candidate register is a working source, not automatically a durable ledger. Persist only selected, verified lessons. When the user explicitly requests a running journal, place it in an existing task-state convention or a clearly labeled draft artifact, retain source turn/artifact references, and keep unverified candidates out of authoritative rules until closeout.
+
 ## Audit and Status Coordination
 
 When an audit finding triggered evolution:

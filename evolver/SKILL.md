@@ -1,6 +1,6 @@
 ---
 name: evolver
-description: "Turn verified fixes, audit findings, delivery lessons, repeated user corrections, releases, incidents, and project retrospectives into durable regression guards, planning gates, documentation or engineering rules, skill refinements, and next-cycle inputs. Use automatically after a completed work cycle when credible recurrence risk or a systemic lesson may justify follow-up, or when the user invokes $evolver, asks to close the PDCA loop, prevent recurrence, institutionalize a lesson, or improve future work. On implicit activation, silently exit when no durable action is worthwhile; when one is worthwhile, present a compact persistence proposal and wait for the user's choice. Persist safe local evolution records directly when the user explicitly invokes or requests persistence. Do not use for unresolved symptoms or broad discovery audits."
+description: "Track and distill verified fixes, audit findings, delivery lessons, repeated user corrections, decisions, releases, incidents, and project retrospectives across a work cycle, then turn worthwhile items into durable regression guards, planning gates, documentation or engineering rules, skill refinements, and next-cycle inputs. Use when the user invokes $evolver, asks to follow the conversation and collect lessons, close the PDCA loop, prevent recurrence, institutionalize a lesson, or improve future work; also use automatically after a completed work cycle when credible recurrence risk or a systemic lesson may justify follow-up. On implicit activation, silently exit when no durable action is worthwhile; when one is worthwhile, present a compact persistence proposal and wait for the user's choice. Persist safe local evolution records directly when the user explicitly invokes or requests persistence. Do not use for unresolved symptoms or broad discovery audits."
 ---
 
 # Evolver
@@ -54,6 +54,16 @@ If all conditions pass, do not write yet. Present only:
 
 Treat “是” or an equivalent confirmation as direct mode and persist immediately. Treat refusal as final; do not re-raise the same proposal unless new evidence materially changes it.
 
+### Tracking mode
+
+Use tracking mode when `$evolver` is invoked before or during a multi-step work cycle, or the user asks Evolver to follow the conversation. Until closeout, maintain a compact internal candidate register and update it after material events, not every message:
+
+```text
+Candidate ID | event/turn | confirmed fact or correction | evidence | possible failed control | status
+```
+
+Capture accepted user corrections, changed decisions, failed attempts, verified fixes, scope changes that invalidate earlier learning, and evidence that proves or disproves a candidate. Merge duplicates and mark superseded items; do not prematurely turn candidates into conclusions. Keep the register available across planning, implementation, verification, and closeout. If context compaction or a handoff is imminent, preserve it in the conversation summary or established task-state mechanism. Do not create a repository artifact merely to hold unverified candidates unless the user explicitly requests a durable running journal.
+
 ## Operating Boundary
 
 Use only after concrete evidence exists from a verified fix, audit, release, incident, accepted user correction, or completed delivery cycle.
@@ -88,11 +98,24 @@ Separate `Confirmed`, `Inference`, and `Unknown`. Never persist an inference as 
 
 The newest user correction invalidates affected learning and downstream actions. Replace any persisted wrong statement before continuing.
 
+## Cycle-wide Evidence Sweep
+
+Before reconstructing lessons in direct-mode closeout, build the candidate source from the whole relevant work cycle, not merely the newest exchange.
+
+1. Define the cycle boundary at the earliest user goal, accepted plan, incident, audit, or delivery request that led to this closeout.
+2. Scan every available turn inside that boundary, plus relevant diffs, tests, logs, screenshots, task state, and persisted artifacts.
+3. Extract material corrections, decisions, failed attempts, verification results, recurrence risks, and invalidated assumptions into the candidate register.
+4. Reconcile later evidence against earlier candidates. Mark each `Confirmed`, `Inference`, `Unknown`, `Superseded`, or `Rejected`.
+5. Group confirmed candidates by shared failed control and rank them by recurrence credibility, impact, breadth, and guard value.
+6. Only then select what deserves persistence. Recentness is not a selection criterion.
+
+When the full cycle is unavailable because earlier turns were truncated, compacted without a register, or occurred in another thread, do not claim a complete conversation review. Use available artifacts to reconstruct what is provable, state the coverage gap, and ask for missing history only when it could materially change the selected durable action. Never substitute the latest visible point and present it as the cycle summary.
+
 ## Core Workflow
 
 ### 1. Reconstruct the lesson
 
-State internally:
+Run the Cycle-wide Evidence Sweep first, then state internally for each shortlisted candidate:
 
 ```text
 Expected control or behavior:
@@ -103,6 +126,8 @@ Credible recurrence condition:
 ```
 
 Reject “test more,” “communicate better,” “be careful,” “human error,” or “AI error” as root causes. Name the missing or ineffective control.
+
+Do not select a lesson only because it is easy to write or appeared near the end. Explain internally why each persisted item outranks confirmed candidates that were not selected.
 
 ### 2. Select one primary systemic action
 
@@ -180,4 +205,4 @@ After persistence or a direct-mode closeout, return no more than five short line
 待办：<only when a material action remains>
 ```
 
-Omit `待办` when empty. In advisory mode, use only the three-line proposal from Invocation Modes; when evolution is not worthwhile, emit nothing. Keep detailed cards, taxonomies, and evidence walkthroughs internal or in the persisted artifact unless the user requests detail. Never claim closure without guard verification.
+Omit `待办` when empty. If cycle coverage is incomplete and material, append it briefly to `结论` or `待办`; never imply a full-history sweep. In advisory mode, use only the three-line proposal from Invocation Modes; when evolution is not worthwhile, emit nothing. Keep detailed cards, taxonomies, and evidence walkthroughs internal or in the persisted artifact unless the user requests detail. Never claim closure without guard verification.
