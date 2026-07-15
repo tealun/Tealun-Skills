@@ -1,6 +1,6 @@
 ---
 name: evolver
-description: "Track and distill verified fixes, audit findings, delivery lessons, repeated user corrections, decisions, releases, incidents, and project retrospectives across a work cycle, then turn worthwhile items into durable regression guards, planning gates, documentation or engineering rules, skill refinements, and next-cycle inputs. Use when the user invokes $evolver, asks to follow the conversation and collect lessons, close the PDCA loop, prevent recurrence, institutionalize a lesson, or improve future work; also use automatically after a completed work cycle when credible recurrence risk or a systemic lesson may justify follow-up. On implicit activation, silently exit when no durable action is worthwhile; when one is worthwhile, present a compact persistence proposal and wait for the user's choice. Persist safe local evolution records directly when the user explicitly invokes or requests persistence. Do not use for unresolved symptoms or broad discovery audits."
+description: "Track verified fixes, findings, corrections, decisions, failed attempts, and delivery lessons across a work cycle; distill worthwhile items into durable guards, planning gates, rules, skill refinements, and next-cycle inputs. Use when the user invokes $evolver, asks to follow the conversation, close the PDCA loop, prevent recurrence, persist lessons, or improve future work. Also engage silent implicit tracking during substantive multi-step work after a second accepted correction, a failed attempt changes the approach, a third work phase begins, three material candidates accumulate, or closeout/commit/release begins. Roughly six substantive exchanges is only a fallback when at least one material correction, decision, failure, or verification exists. At implicit closeout, exit silently if no durable action is worthwhile; otherwise propose one and await confirmation. Explicit invocation or persistence requests authorize safe local writes. Do not use for unresolved symptoms or broad discovery audits."
 ---
 
 # Evolver
@@ -63,6 +63,18 @@ Candidate ID | event/turn | confirmed fact or correction | evidence | possible f
 ```
 
 Capture accepted user corrections, changed decisions, failed attempts, verified fixes, scope changes that invalidate earlier learning, and evidence that proves or disproves a candidate. Merge duplicates and mark superseded items; do not prematurely turn candidates into conclusions. Keep the register available across planning, implementation, verification, and closeout. If context compaction or a handoff is imminent, preserve it in the conversation summary or established task-state mechanism. Do not create a repository artifact merely to hold unverified candidates unless the user explicitly requests a durable running journal.
+
+Enter implicit tracking silently when the earliest applicable threshold is reached:
+
+1. a second accepted user correction occurs in the cycle;
+2. a failed attempt changes the implementation or decision path;
+3. work enters a third distinct phase, such as planning, implementation, then verification;
+4. three material candidates exist;
+5. the user or workflow begins summary, handoff, commit, release, or other closeout.
+
+As a fallback, consider roughly six substantive user-assistant exchanges only when at least one material correction, decision, failure, scope change, or verification result already exists. Do not count greetings, status checks, tool polling, repeated confirmations, or incidental chat. Turn count alone must never activate tracking or manufacture candidates.
+
+Implicit tracking produces no user-facing Evolver message and grants no write authority. Continue the primary task normally. At closeout, evaluate the accumulated register under Advisory mode unless the user explicitly invoked Evolver or requested persistence.
 
 ## Operating Boundary
 

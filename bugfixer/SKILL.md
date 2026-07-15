@@ -1,10 +1,10 @@
 ---
 name: bugfixer
-description: "Use for full-stack development-time bug fixing when the user reports broken behavior, UI regressions, screenshots that look wrong, console errors, API 400/401/500 failures, persistence problems, incorrect statistics, deployment/runtime failures, or repeated correction during implementation. Start from the observed symptom, preserve the user's latest product intent, isolate the responsible layer, make the smallest safe fix, and verify with targeted commands or user-visible acceptance checks."
+description: "Use for full-stack development-time bug fixing when the user reports broken behavior, UI regressions, screenshots that look wrong, console errors, API 400/401/500 failures, persistence problems, incorrect statistics, deployment/runtime failures, repeated correction, a failed post-change check, or a prior fix that missed the cause. Activate immediately on explicit failure evidence or 'still wrong' feedback; also activate after roughly four substantive unresolved diagnostic exchanges when at least one concrete failure exists. Reproduce or directly observe the symptom, collect runtime evidence, test competing hypotheses with discriminating checks, isolate the proven responsible layer, make the smallest safe fix, and verify the original user-visible outcome. Do not stop at plausible explanations or close merely because one attempted fix failed."
 argument-hint: "Describe the symptom, screenshot/log/error, expected behavior, affected environment, and any recent change."
 user-invocable: true
 disable-model-invocation: false
-version: 1.3.0
+version: 1.4.0
 ---
 
 # Bugfixer
@@ -12,6 +12,12 @@ version: 1.3.0
 Repair concrete development defects from the user-visible symptom to the smallest proven cause. Preserve the latest product intent, change only the causal chain, and verify that the reported symptom is gone.
 
 When the newest user message corrects the direction, treat the mismatch with that corrected intent as the current bug. Stop extending the rejected direction and protect everything the user already approved.
+
+## Discussion-aware Activation
+
+Enter Bugfixer immediately when an explicit symptom, failing check after a change, runtime error, or user feedback such as “still wrong” appears during another workflow. Do not wait for the user to invoke the skill or for a turn threshold. If the symptom is less explicit, roughly four substantive user-assistant diagnostic exchanges with at least one concrete unresolved failure are a fallback activation signal. Do not count greetings, status requests, tool polling, repeated confirmations, or unrelated discussion.
+
+When Tasker encounters these signals, preserve its task contract and route the defect investigation here. Bugfixer owns diagnosis and repair until the original observable outcome passes; then return control to the surrounding workflow for its remaining acceptance checks.
 
 ## Conditional References
 
@@ -50,6 +56,20 @@ Identify the first layer that can explain the evidence:
 
 Trace only far enough to prove the causal chain. If a link is assumed, mark it unverified.
 
+### 3a. Prove the diagnosis
+
+Before a causal edit, maintain a compact diagnostic ledger:
+
+```text
+Observation | Candidate cause | Predicted evidence | Discriminating check | Result | Status
+```
+
+- Derive candidates from observed code paths, runtime state, logs, requests, data, or reproducible behavior—not familiarity or narrative plausibility.
+- Keep at least two competing candidates when the responsible link is not directly observed; include one outside the initially suspected layer when evidence permits.
+- Choose the cheapest check whose possible outcomes distinguish candidates. Merely rereading the same code or rerunning the same failing action is not a discriminating check.
+- Mark a candidate `proven` only when its predicted evidence is observed and a targeted intervention changes the symptom as predicted. Otherwise keep it `plausible`, `weakened`, or `rejected`.
+- Do not edit production code solely to discover whether an unsupported guess is true when a log, breakpoint, request capture, query, focused test, temporary instrumentation, or direct state inspection can decide first.
+
 ### 4. Patch the smallest causal chain
 
 - Preserve user-confirmed behavior and unrelated dirty-worktree changes.
@@ -65,6 +85,18 @@ Trace only far enough to prove the causal chain. If a link is assumed, mark it u
 - A green build proves buildability, not visual, auth, metric, persistence, or deployment correctness.
 - Report exact unverified gaps and required restart, migration, deploy, or user visual confirmation.
 - Do not say “fixed” until evidence matches the original or corrected symptom.
+
+### 6. Continue after a missed fix
+
+A failed repair is new diagnostic evidence, not a reason to stop.
+
+1. Revert or isolate only the agent's disproven change when safe and authorized; preserve unrelated user work.
+2. Record exactly which prediction failed and which candidates it weakens or rejects.
+3. Inspect the next unobserved link in the causal path and run a materially different discriminating check.
+4. Load [references/full-stack-debugging.md](references/full-stack-debugging.md) and expand one boundary outward when two attempts shared the same assumption or layer.
+5. Continue while an in-scope observation, inspection, instrumentation, or test can reduce uncertainty.
+
+Never close with “the fix missed the root cause, so I will stop guessing” while meaningful diagnostics remain. Stop only for a concrete blocker: missing authority, inaccessible environment/data, unavailable required input, destructive-risk decision, or exhausted relevant observability. State the blocker and the exact next observation needed. Uncertainty by itself is not a blocker.
 
 ## Fast Triage
 

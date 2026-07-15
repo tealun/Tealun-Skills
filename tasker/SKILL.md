@@ -1,10 +1,10 @@
 ---
 name: tasker
-description: 'Use for task execution, debugging, implementation, analysis, review, planning, workflow execution, and user dissatisfaction handling in agent interactions. 任务执行、调试排难、代码实现、问题分析、代码评审、任务拆解、用户不满处理、升级处理。'
+description: 'Use for task execution, debugging, implementation, analysis, review, planning, workflow execution, and user dissatisfaction handling. During execution, route automatically to $bugfixer when a post-change check fails, the user says the result is still wrong, an explicit runtime symptom appears, or roughly four substantive unresolved diagnostic exchanges accumulate with concrete failure evidence; resume the Tasker contract after the defect is verified. 任务执行、调试排难、代码实现、问题分析、代码评审、任务拆解、用户不满处理、升级处理。'
 argument-hint: 'Describe the task goal, constraints, expected output, and validation method.'
 user-invocable: true
 disable-model-invocation: false
-version: 1.7.0
+version: 1.8.0
 ---
 
 # Tasker
@@ -50,6 +50,12 @@ intake → clarify → plan → confirm → execute → verify → close
 7. **Close** — report an evidence-calibrated verdict, residual gaps, and one useful next action.
 
 Retreat when evidence invalidates the current stage: execution failure → `plan`; incomplete verification → `execute`; rejected confirmation → `clarify`. State the reason. Bare `/tasker` triggers a one-line handshake and stops.
+
+### Bugfixer route
+
+Route from Tasker to `$bugfixer` immediately when a post-change check fails, the user reports “still wrong” or equivalent rejected behavior, a concrete runtime symptom appears, or a previous repair missed its predicted outcome. As a fallback, route after roughly four substantive unresolved diagnostic exchanges only when at least one concrete failure is present. Do not count greetings, confirmations, status checks, tool polling, or unrelated discussion.
+
+Preserve Tasker's `done_definition`, scope, target identity, and protected invariants across the route. Let Bugfixer run the evidence-led diagnosis and verify the reported symptom; then resume Tasker at `verify` or the earliest invalidated stage. Do not run both workflows as duplicate parallel commentary.
 
 ## Sizing and Confirmation
 
@@ -132,12 +138,14 @@ Initiative means completing the whole required path, not turning one request int
 5. **Plan alignment** — when evidence requires a different plan, stop, update the plan, and re-confirm if scope or risk changes materially.
 6. **No invention** — never fabricate files, commands, observations, or test results.
 7. **Target lock** — after confirmation, all writes stay under `target_identity`. Discovery of a more plausible repository invalidates the plan and returns to `clarify`; it does not authorize an automatic switch.
+8. **Evidence before explanation** — for debugging or uncertain implementation, observable facts precede causal claims. A plausible story is a hypothesis until a discriminating check supports it.
+9. **Failed attempts inform the next probe** — record the failed prediction, reject or weaken the affected hypothesis, and choose a materially different observation or test. Do not respond to a missed fix by merely announcing that guessing will stop.
 
 Batch independent reads and checks. Keep dependent actions sequential. A plan without an executable tool for a required change must retreat to `clarify`.
 
 ### Retry Limits
 
-Retry the same failure at most three times and retreat at most three times. After two failures of the same approach, load [references/recovery.md](references/recovery.md) and perform a strategy reset before another attempt. Reaching either cap upgrades the level and requires a user decision to continue, delegate, or stop.
+Retry the same mechanism or unchanged hypothesis at most three times and retreat at most three times. Distinct read-only diagnostic probes that test different predictions are not retries. After two failures sharing an approach or assumption, load [references/recovery.md](references/recovery.md) and perform a strategy reset before another mutation. Reaching a cap forbids repeating that strategy; it does not justify stopping while a different safe, in-scope diagnostic path remains. Require a user decision only when the remaining path needs new authority, material scope expansion, destructive risk, unavailable input/environment, or a genuinely exhausted relevant observation surface.
 
 Keep state transitions within `S ≤ 4`, `M ≤ 8`, and `L ≤ 15`. If the budget is exhausted, close accurately with `[budget-exceeded]` and recommend decomposition or a higher-capability workflow; do not claim completion.
 
@@ -164,7 +172,7 @@ Before `close`, ensure:
 - Important preserved behavior was checked in proportion to risk.
 - Residual assumptions, untested paths, and limitations are explicit.
 
-If progress remains possible, retreat instead of closing with a weaker verdict.
+If progress remains possible, retreat instead of closing with a weaker verdict. “I would only be guessing” is not a terminal condition when source inspection, logs, runtime state, instrumentation, focused tests, or competing-hypothesis checks can still produce evidence.
 
 ## Output Contract
 

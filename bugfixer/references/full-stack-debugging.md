@@ -33,6 +33,20 @@ visible failure
 
 Stop when the causal chain is proven. Expand only when verification fails or evidence crosses another boundary.
 
+## Hypothesis Elimination Loop
+
+When the cause is not directly visible, repeat:
+
+```text
+observe → list competing causes → predict distinct evidence
+→ run the cheapest discriminating check → reject/weaken/confirm
+→ patch only the confirmed causal link → reproduce original symptom
+```
+
+After a patch fails, do not paraphrase the same theory and try a nearby edit. Treat the unchanged symptom as evidence against the patch's causal prediction, identify the shared assumption, and inspect the next unobserved link or adjacent layer. Temporary instrumentation is preferable to speculative production edits; remove it after collecting evidence unless it is intentionally retained as a useful guard.
+
+Examples of discriminating checks include capturing the actual event target instead of inferring handler behavior, comparing the raw request with the server DTO, querying persisted state before inspecting the reload mapper, checking the running build SHA before editing a route, and reproducing against a minimal fixture that separates data from rendering.
+
 For persistence defects, explicitly observe:
 
 ```text

@@ -11,8 +11,9 @@ Before the next attempt:
 3. Re-check prerequisites using source code, raw responses, logs, official specifications, or direct environment inspection.
 4. Form at least two competing explanations, including one that contradicts the leading assumption.
 5. Choose a materially different next action and define its success and failure observations before running it.
+6. Prefer an observation that eliminates multiple explanations over another speculative mutation.
 
-Changing a timeout, renaming a variable, or rerunning with minor flags is not a distinct strategy unless it tests a different hypothesis. If no distinct in-scope strategy remains, stop consuming retries.
+Changing a timeout, renaming a variable, or rerunning with minor flags is not a distinct strategy unless it tests a different hypothesis. If no distinct mutation strategy remains, continue with safe read-only probes while they can reduce uncertainty. Stop only when no relevant in-scope observation remains or a concrete external blocker prevents it.
 
 ## Retreat Rules
 
@@ -41,7 +42,7 @@ The first response after detecting a possible wrong target must be deliberately 
 
 ## Blocked Report
 
-Use `Blocked` only when a dependency, authority, input, or environment prevents meaningful progress. Report:
+Use `Blocked` only when a dependency, authority, input, environment, destructive-risk decision, or exhausted relevant observability prevents meaningful progress. Lack of a confirmed root cause, one or more failed fixes, or reluctance to speculate is not itself a blocker while additional safe diagnostics exist. Report:
 
 - Exact blocker and current evidence.
 - Attempts made and why each failed.

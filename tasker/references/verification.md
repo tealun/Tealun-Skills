@@ -18,6 +18,14 @@ Action → Artifact → Observation → Requirement → Verdict
 
 A changed file or successful command does not automatically prove correctness. Missing coverage means retreat or use an accurate non-confirmed verdict.
 
+For diagnostic work, use a hypothesis ledger before mutation:
+
+```text
+Observed fact → candidate cause → predicted distinguishing evidence → check → result
+```
+
+Do not convert correlation, code proximity, familiar failure patterns, or a plausible explanation into a root-cause claim. Root-cause evidence must connect the symptom to the causal link and show that changing or controlling that link changes the outcome as predicted.
+
 ## Outcome Path
 
 When an effect crosses components, trace the shortest causal path:
