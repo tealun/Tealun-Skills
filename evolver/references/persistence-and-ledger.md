@@ -1,6 +1,15 @@
 # Persistence and Evolution Ledger
 
-Use this reference when writing durable evolution artifacts or updating related audit/planning records.
+Read this reference completely before every Evolver write or closure claim.
+
+## Non-Substitution Rule
+
+Evolver persists two different things:
+
+1. a **Systemic Guard** in its authoritative execution surface;
+2. an **Evolution Record** in the project's evolution ledger.
+
+A test, checklist, `.gitignore`, project rule, or source edit may be the guard, but none is the evolution ledger. A ledger row records the evolution, but does not prove that the guard works.
 
 ## Persistence Boundary
 
@@ -9,17 +18,23 @@ Prefer existing repository conventions. Direct-mode persistence (explicit `$evol
 - an established retrospective or continuous-improvement record;
 - a focused regression test or check when the requested evolution includes implementation;
 - authoritative documentation, project instructions, checklists, or planning gates;
-- `docs/98_evolution/` only when no existing convention fits.
+- the established project evolution ledger, or `docs/98_evolution/evolution-ledger.md` when none exists.
 
 Implicit activation alone is not write authorization. In advisory mode, propose one artifact and guard, then wait for confirmation. Do not silently apply architecture, schema, permission, production, deployment, broad workflow, or external-system changes. Record the proposed action and route its execution through `$tasker` when it exceeds the request.
 
 If one material uncertainty, write restriction, missing workspace, or source-of-truth conflict blocks persistence, do not write a speculative record. Return that single blocker; after confirmation, persist without repeating the retrospective.
 
-## Placement Priority
+## Guard and Ledger Placement
 
-1. Update an existing authoritative test, rule, checklist, gate, or evolution ledger.
-2. Otherwise append one concise entry to `docs/98_evolution/evolution-ledger.md`.
-3. Create a cycle detail file only for multi-cause, high-risk, or cross-component learning.
+Place the systemic guard in the earliest authoritative test, rule, checklist, gate, constraint, or execution surface.
+
+Separately resolve the evolution record in this order:
+
+1. explicit user-specified ledger path;
+2. existing project evolution ledger discovered by search;
+3. `<project-root>/docs/98_evolution/evolution-ledger.md`.
+
+Read an existing ledger before appending. Preserve its schema and ID convention. If no ledger exists, create the standard directory and file in direct mode. Absence is not a reason to write the record elsewhere or skip it.
 
 Suggested fallback:
 
@@ -39,7 +54,9 @@ Keep evolution records separate from audit reports. Link the source audit item r
 |---|---|---|---|---|---|---|---|
 ```
 
-Entries must distinguish confirmed evidence from inference, link their source where practical, and remain concise. Avoid empty directory scaffolding for one low-risk lesson.
+Entries must distinguish confirmed evidence from inference, link their source where practical, use a unique ID, escape `|`, and remain concise.
+
+Prefer `scripts/append_evolution_ledger.py` for deterministic creation, schema validation, duplicate-ID rejection, append, and read-back.
 
 The candidate register is a working source, not automatically a durable ledger. Persist only selected, verified lessons. When the user explicitly requests a running journal, place it in an existing task-state convention or a clearly labeled draft artifact, retain source turn/artifact references, and keep unverified candidates out of authoritative rules until closeout.
 
@@ -56,11 +73,12 @@ When an audit finding triggered evolution:
 
 After persistence:
 
-1. read back the exact changed artifact;
-2. confirm links and referenced IDs resolve;
-3. ensure the statement matches the verified baseline and does not promote inference to fact;
-4. run the guard or the narrowest relevant validation;
-5. inspect the worktree for unintended changes;
-6. report the actual path and proven closure level.
+1. read back every changed guard artifact;
+2. run the guard or the narrowest relevant validation;
+3. read back the exact evolution-ledger row;
+4. confirm the row's schema, unique ID, links, evidence, and closure level;
+5. ensure the statement does not promote inference to fact;
+6. inspect the worktree for unintended changes;
+7. report absolute guard and ledger paths separately.
 
-No write/read-back evidence means `未落盘`. No guard execution or proof means closure cannot exceed `Corrected` unless the evolution is purely a planning feed-forward with independently verified ownership and gate placement.
+No verified ledger write means `台账：未追加`; closure cannot exceed `Guarded`. No guard execution or proof means closure cannot exceed `Corrected` unless the evolution is purely a planning feed-forward with independently verified ownership and gate placement.

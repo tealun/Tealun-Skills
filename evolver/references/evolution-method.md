@@ -21,6 +21,8 @@ Recurrence risk:
 Failed control:
 Evolution goal:
 Protected invariants:
+Systemic guard:
+Evolution ledger:
 ```
 
 Maintain only when the cycle needs them:
@@ -44,7 +46,7 @@ Without a systemic action, recurrence is credible when <condition>.
 | Primary class | Signal | Earliest useful control |
 |---|---|---|
 | Planning gap | requirement, role, data rule, or external fact was undecided | decision, M0 spike, acceptance criterion |
-| Execution gap | scope drift, incomplete action, or unsupported completion claim | task contract, confirmation boundary, evidence rule |
+| Execution gap | scope drift, incomplete action, unsupported completion claim, or wrong persistence surface | task contract, path preflight, confirmation boundary, evidence rule |
 | Design/contract gap | UI, API, schema, permission, or ownership contract was ambiguous | spec, interface contract, schema rule |
 | Test gap | known correct behavior lacked executable coverage | regression, integration, contract, or E2E test |
 | Audit gap | relevant risk dimension or critical path was not inspected | audit scope, detector, checklist, severity rule |
@@ -63,8 +65,9 @@ For each candidate action ask:
 3. Can it be verified repeatedly rather than trusted as prose?
 4. Is its maintenance cost proportionate to recurrence likelihood and impact?
 5. Does it protect already accepted behavior and avoid unrelated scope?
+6. Will the verified lesson be discoverable in the established project evolution ledger?
 
-Reject actions that only restate the lesson, duplicate an existing control, or create ceremony without a testable effect.
+Reject actions that only restate the lesson, duplicate an existing control, create ceremony without a testable effect, or confuse guard placement with ledger placement.
 
 ## Multi-Item Prioritization
 
@@ -84,7 +87,7 @@ Before selecting, compare every confirmed candidate from the cycle. Record inter
 
 - `Corrected` requires proof of the local outcome.
 - `Guarded` requires a repeatable control and a target failure case.
-- `Institutionalized` additionally requires authoritative placement and ownership.
+- `Institutionalized` additionally requires authoritative placement and ownership plus a verified project evolution-ledger record.
 - `Fed forward` additionally requires a linked next-cycle decision or gate.
 
-Do not skip levels based on intention. If runtime access or realistic test data is unavailable, name the verification gap and report the lower proven level.
+Do not skip levels based on intention. Without a ledger update, closure is at most `Guarded`. If runtime access or realistic test data is unavailable, name the verification gap and report the lower proven level.

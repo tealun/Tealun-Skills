@@ -1,7 +1,7 @@
 interface:
   display_name: "Evolver"
-  short_description: "Track a full work cycle and turn its lessons into durable guards."
-  default_prompt: "Use $evolver to review the full relevant work cycle, reconcile its lesson candidates, persist the worthwhile verified improvements when safe, and return a concise result."
+  short_description: "Persist verified lessons as tested guards and ledger records."
+  default_prompt: "Use $evolver to review the full relevant work cycle, test the smallest durable guard, persist the lesson in the project evolution ledger, and report both absolute paths."
 
 policy:
   allow_implicit_invocation: true
