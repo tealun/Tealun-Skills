@@ -19,9 +19,20 @@ function Test-CliInstalled {
         if (Get-Command $command -ErrorAction SilentlyContinue) { return $true }
     }
     foreach ($dir in $ConfigDirs) {
-        if (Test-Path -LiteralPath $dir -PathType Container) { return $true }
+        if (Test-DirectoryExists $dir) { return $true }
     }
     return $false
+}
+
+function Test-DirectoryExists {
+    param([string]$Path)
+
+    if ([string]::IsNullOrWhiteSpace($Path)) { return $false }
+    try {
+        return (Test-Path -LiteralPath $Path -PathType Container -ErrorAction Stop)
+    } catch {
+        return $false
+    }
 }
 
 $targets = [System.Collections.Generic.List[object]]::new()
@@ -33,12 +44,26 @@ function Add-SkillTarget {
     $targets.Add([pscustomobject]@{ Label = $Label; Path = $fullPath })
 }
 
+function Get-RoamingAppDataDir {
+    $appData = [Environment]::GetFolderPath('ApplicationData')
+    if ([string]::IsNullOrWhiteSpace($appData)) {
+        $appData = $env:APPDATA
+    }
+    return $appData
+}
+
 $agentsDir = Join-Path $HOME '.agents'
 $codexDir = Join-Path $HOME '.codex'
+$appDataDir = Get-RoamingAppDataDir
+$kimiDesktopDaimonDir = if ([string]::IsNullOrWhiteSpace($appDataDir)) {
+    $null
+} else {
+    Join-Path $appDataDir 'kimi-desktop/daimon-share/daimon'
+}
 if (Test-CliInstalled @('claude') @((Join-Path $HOME '.claude'))) {
     Add-SkillTarget 'Claude' (Join-Path $HOME '.claude/skills')
 }
-if ((Test-CliInstalled @('codex') @($codexDir)) -and -not (Test-Path -LiteralPath $agentsDir -PathType Container)) {
+if ((Test-CliInstalled @('codex') @($codexDir)) -and -not (Test-DirectoryExists $agentsDir)) {
     Add-SkillTarget 'Codex' (Join-Path $codexDir 'skills')
 }
 if (Test-CliInstalled @('cursor') @((Join-Path $HOME '.cursor'))) {
@@ -50,10 +75,13 @@ if (Test-CliInstalled @('gemini') @((Join-Path $HOME '.gemini'))) {
 if (Test-CliInstalled @('kimi', 'kimi-cli', 'kimi-code') @((Join-Path $HOME '.kimi'), (Join-Path $HOME '.kimi-code'))) {
     Add-SkillTarget 'Kimi' (Join-Path $HOME '.kimi/skills')
 }
+if (Test-DirectoryExists $kimiDesktopDaimonDir) {
+    Add-SkillTarget 'Kimi Desktop' (Join-Path $kimiDesktopDaimonDir 'skills')
+}
 if (Test-CliInstalled @('opencode') @((Join-Path $HOME '.config/opencode'))) {
     Add-SkillTarget 'OpenCode' (Join-Path $HOME '.config/opencode/skills')
 }
-if (Test-Path -LiteralPath $agentsDir -PathType Container) {
+if (Test-DirectoryExists $agentsDir) {
     Add-SkillTarget 'Shared agents' (Join-Path $agentsDir 'skills')
 }
 
