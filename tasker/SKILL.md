@@ -4,7 +4,7 @@ description: 'Use for task execution, debugging, implementation, analysis, revie
 argument-hint: 'Describe the task goal, constraints, expected output, and validation method.'
 user-invocable: true
 disable-model-invocation: false
-version: 1.8.0
+version: 1.8.1
 ---
 
 # Tasker
@@ -56,6 +56,12 @@ Retreat when evidence invalidates the current stage: execution failure → `plan
 Route from Tasker to `$bugfixer` immediately when a post-change check fails, the user reports “still wrong” or equivalent rejected behavior, a concrete runtime symptom appears, or a previous repair missed its predicted outcome. As a fallback, route after roughly four substantive unresolved diagnostic exchanges only when at least one concrete failure is present. Do not count greetings, confirmations, status checks, tool polling, or unrelated discussion.
 
 Preserve Tasker's `done_definition`, scope, target identity, and protected invariants across the route. Let Bugfixer run the evidence-led diagnosis and verify the reported symptom; then resume Tasker at `verify` or the earliest invalidated stage. Do not run both workflows as duplicate parallel commentary.
+
+### Auditor route
+
+Do not convert ordinary implementation, debugging, or verification work into a full audit by default. Use local impact inspection, targeted tests, and the existing Tasker verification protocol unless the user explicitly asks for an audit/review/security check or the work touches high-risk boundaries such as auth, permissions, tenant isolation, payments, sensitive data, uploads, webhooks, AI generation/persistence, database schema, deployment, dependency trust, or broad shared abstractions.
+
+When `$auditor` is appropriate, pass the confirmed target identity, requested focus, changed files or commit range when known, preserved invariants, and any checks already run. Ask Auditor to choose scope and depth from the most recent relevant audit anchor or release checkpoint when available. Explicit deep, comprehensive, full, or multidimensional audit requests should remain whole-project audits rather than Tasker-narrowed checks.
 
 ## Sizing and Confirmation
 

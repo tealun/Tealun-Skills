@@ -9,7 +9,7 @@ description: >
 argument-hint: "Describe the project or path to audit, concerns to prioritize, and desired depth or report format."
 user-invocable: true
 disable-model-invocation: false
-version: 4.0.0
+version: 4.1.0
 ---
 
 # Auditor
@@ -31,9 +31,10 @@ Load only what the audit needs:
 
 Before scanning, define internally:
 
-- `scope` — repository/path, included uncommitted changes, and requested focus;
-- `baseline` — branch, HEAD when Git exists, worktree state, and time of observation;
+- `scope` — repository/path, included uncommitted changes, requested focus, and the change window selected for review;
+- `baseline` — branch, HEAD when Git exists, worktree state, prior audit anchor when available, and time of observation;
 - `depth` — quick, standard, or deep, with the reason;
+- `delegation` — whether subagents are needed, which risk surface each one owns, and why local inspection is insufficient;
 - `deliverable` — conversational findings or a repository report explicitly requested by the user;
 - `limits` — unavailable runtimes, credentials, services, test data, or permissions.
 
@@ -47,17 +48,37 @@ Honor `.audit-config.yml` when present, except where it conflicts with the user'
 
 Inspect repository status, branch, HEAD, recent changes, project instructions, and existing audit reports. Preserve unrelated dirty-worktree changes. State whether uncommitted work is included. Remote synchronization happens only when explicitly requested.
 
+Default audit scope is change-driven. Locate the most recent relevant audit record, audit-status document, release checkpoint, or explicit user-provided anchor. When an anchor exists, inspect the commits, diffs, file moves, dependency/config changes, migrations, generated artifacts, and uncommitted work since that anchor before choosing depth. When no reliable anchor exists, fall back to a project-shape baseline audit and state that the range was not bounded by a prior audit.
+
+Use the changed code to decide how far to expand:
+
+- Expand from changed files to callers, consumers, shared contracts, tests, configuration, migrations, and runtime entry points that can be affected.
+- Escalate depth when the diff touches auth, permissions, tenant boundaries, payments, sensitive data, uploads, webhooks, AI generation/persistence, deployment, database schema, dependency trust, or broad shared abstractions.
+- Keep narrow changes narrow when the diff is isolated, low-risk, and has clear tests or static proof.
+- If the user explicitly asks for deep, comprehensive, full, or multidimensional audit, do a whole-project audit instead of limiting scope to the post-anchor diff.
+
 ### 2. Fingerprint the project
 
 Identify languages, frameworks, dependency managers, database/ORM, auth, external integrations, UI surfaces, deployment model, CI, and high-value data. Confirm risk signals in surrounding production code; keywords alone do not count.
 
 Select depth from actual consequences:
 
-- **Quick** — narrow or low-risk project/request; spot-check the requested concern plus basic security, correctness, maintainability, and test health.
-- **Standard** — multiple runtime layers, user-facing APIs/UI, persistence, or meaningful integration risk; cover all applicable dimensions and trace at least the highest-risk path.
-- **Deep** — auth/payment/tenant boundaries, sensitive data, uploads/webhooks, production infrastructure, complex state machines, or an explicit deep audit; trace every identified high-risk path and include supply-chain, tests, and operations.
+- **Quick** — narrow or low-risk change/request; inspect the changed surface plus adjacent correctness, security, maintainability, and test-health signals.
+- **Standard** — multiple runtime layers, user-facing APIs/UI, persistence, meaningful integration risk, or a change range that crosses ownership boundaries; cover all applicable dimensions for affected surfaces and trace at least the highest-risk path.
+- **Deep** — auth/payment/tenant boundaries, sensitive data, uploads/webhooks, production infrastructure, complex state machines, high-risk dependency/config/schema changes, a large or ambiguous post-anchor change range, or an explicit deep audit; trace every identified high-risk path and include supply-chain, tests, and operations.
 
 If time or access ends first, stop cleanly and report partial coverage rather than manufacturing completeness.
+
+### Delegation and subagents
+
+Subagents are a coverage tool, not a default audit ritual. Do not set a hard subagent budget that could suppress necessary review. Instead, decide delegation from the selected scope and risk:
+
+- Use no subagents when the change range is narrow enough for the main auditor to inspect and verify directly.
+- Use one or more specialist subagents when independent risk surfaces need parallel evidence gathering, such as security/auth, data integrity, deployment/ops, frontend UX, AI/prompt safety, or dependency supply chain.
+- Use broader specialist coverage for explicit deep, comprehensive, full, or multidimensional audits.
+- Avoid generic subagents unless their input/output can be tightly scoped. Prefer a named risk lens with concrete files, paths, questions, and expected evidence.
+- Each subagent request must state the change window, target paths, risk lens, exclusions, and the evidence format needed. Delegated findings are leads until the main auditor independently checks the relevant baseline context and proof.
+- If conserving tokens conflicts with audit quality, preserve audit quality and report the reason. Token savings come from better scoping and cheaper/simple specialist models, not from skipping necessary risk surfaces.
 
 ### 3. Build the coverage map
 
