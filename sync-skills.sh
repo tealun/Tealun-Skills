@@ -63,7 +63,13 @@ run_windows_sync() {
   local windows_script
   windows_script="$(wslpath -w "$REPO_DIR/sync-skills.ps1")"
   echo "WSL detected: delegating Windows sync to $windows_script"
-  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$windows_script" "$@"
+  local command
+  command="\$env:DRY_RUN = '$DRY_RUN'; & '$(printf '%s' "$windows_script" | sed "s/'/''/g")'"
+  local arg
+  for arg in "$@"; do
+    command="$command '$(printf '%s' "$arg" | sed "s/'/''/g")'"
+  done
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$command"
 }
 
 # A Bash process inside WSL has a Linux HOME even when launched from Windows.
