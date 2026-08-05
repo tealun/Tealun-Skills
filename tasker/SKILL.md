@@ -4,7 +4,7 @@ description: 'Use for task execution, debugging, implementation, analysis, revie
 argument-hint: 'Describe the task goal, constraints, expected output, and validation method.'
 user-invocable: true
 disable-model-invocation: false
-version: 1.8.2
+version: 1.8.3
 ---
 
 # Tasker
@@ -91,6 +91,14 @@ Before `execute`, define:
 
 Missing any material item means remain in `clarify` or `plan`. `L` requires at least one external anchor such as automated tests, static analysis, user acceptance, or independent review.
 
+### Code Commenting Gate
+
+Use this gate only for development-code work that asks to add comments, add documentation-style explanations, or improve maintainability/readability through comments. Before execution, sample the target files and record in the execution contract: the project's primary developer-facing language, existing comment style, comment density, and the user's maintainability expectation. Unless the user requests otherwise, new comments must use the project's primary developer-facing language.
+
+For comment-focused work, do not satisfy the task with scattered inline notes. Prefer concise, human-maintainer entry points at the module, class, method, and function level, covering responsibility, inputs and outputs, key business constraints, boundary conditions, side effects, permissions/security/tenant semantics, and intentional tradeoffs when relevant. Use inline comments only for non-obvious logic inside an implementation. Do not use English or mechanically fragmented comments as a substitute for maintainable method-level explanations when the project faces developers in another language.
+
+If the evidence shows the user expects a systematic readability improvement, plan and verify the work by file or coherent batch before editing. Do not casually pick a few code points to annotate and call the request complete.
+
 ### Workspace Identity Gate
 
 The current working directory is environment context, not proof of user intent. Before the first mutation in `M/L` work:
@@ -129,7 +137,7 @@ Apply the smallest solution that satisfies `done_definition`.
 
 - Do not add unrelated cleanup, refactors, features, abstractions, or dependencies.
 - Match existing conventions and prefer simple, maintainable changes.
-- Only for development code changes, follow the project's programming language, framework, and existing comment style. Add concise comments or docstrings where they improve maintainability: non-obvious business rules, complex control flow, edge cases, integration contracts, or intentional tradeoffs. Keep comments readable, specific, and proportional; avoid restating obvious code or spreading comments mechanically.
+- Only for development code changes, follow the project's programming language, framework, and existing comment style. Add concise comments or docstrings where they improve maintainability, and apply the Code Commenting Gate for comment-focused or maintainability-through-comments tasks.
 - For `M/L`, inspect the smallest credible impact surface: callers, consumers, shared contracts, configuration, and failure paths.
 - Classify adjacent findings as **required**, **optional**, or **unrelated**. Change required items, report optional items, and leave unrelated items untouched.
 - If a required discovery materially expands scope, retreat to `clarify`; do not expand silently.
