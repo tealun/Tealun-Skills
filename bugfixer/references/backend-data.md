@@ -23,6 +23,24 @@ UI state → request payload → contract → service/repository
 
 Check column type, nullability, defaults, lengths, JSON shape, indexes, storage category, MIME/size rules, returned URL, and cleanup. A save is not verified until readback and reload succeed.
 
+## Generated Artifact Freshness
+
+When the defect is in a generated or downloadable artifact such as a PDF, spreadsheet, export ZIP, image, or report, inspect the artifact lifecycle:
+
+```text
+source record/template
+→ generation service
+→ stored file/object
+→ freshness marker, version, or metadata
+→ download/preview route
+→ user file
+```
+
+- Compare the actual stored artifact with source inputs; check mtime, checksum, metadata, and whether the request uses a download endpoint or a direct static URL.
+- If render, layout, seal, export, or conversion semantics changed, stale artifacts must be invalidated, regenerated, or versioned. Do not assume new code updates existing files.
+- Add a regression that an old artifact version or missing marker is detected as stale and triggers the intended regeneration path.
+- Verify with a real representative artifact when possible, especially for spreadsheet, PDF, image, or archive conversions where previews can differ from source files.
+
 ## Metrics
 
 Define the metric before changing code:

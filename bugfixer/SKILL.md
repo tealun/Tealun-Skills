@@ -4,7 +4,7 @@ description: "Use for full-stack development-time bug fixing when the user repor
 argument-hint: "Describe the symptom, screenshot/log/error, expected behavior, affected environment, and any recent change."
 user-invocable: true
 disable-model-invocation: false
-version: 1.4.0
+version: 1.5.0
 ---
 
 # Bugfixer
@@ -109,6 +109,8 @@ Use status codes as evidence:
 - `500` — read server logs; inspect nulls, constraints, migrations, storage, and unhandled branches.
 
 When an old protected route returns `401` but a new related route returns `404`, the service and auth layer are live while the new route is absent from the running target. Check deployment version, route registration, build output, and proxy target before changing the client.
+
+For generated artifacts that remain stale or wrong after a fix, compare the source record, stored file/object, metadata or version marker, regeneration trigger, direct/static URL path, and download/preview endpoint before changing render code again. If output semantics changed, require artifact versioning, invalidation, or regeneration plus a regression for old artifacts.
 
 ## User Corrections
 

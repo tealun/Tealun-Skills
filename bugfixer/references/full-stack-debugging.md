@@ -12,6 +12,7 @@ Use this reference when the responsible layer is unclear or the symptom crosses 
 | API `404` only in production | route registration, running version, proxy target | `backend-data.md` + `runtime-deploy.md` |
 | Config ignored or sample becomes active | identify which process reads which config plane | `runtime-deploy.md` |
 | Migration or database shape is wrong | schema authority, applied state, runtime DB target | `backend-data.md` + `runtime-deploy.md` when production differs |
+| Generated/downloaded file still shows old layout or data after a fix | actual artifact path/object, metadata/version, mtime/checksum, regeneration trigger, download endpoint vs static URL | `backend-data.md` + `runtime-deploy.md` when deployed behavior differs |
 | Count or analytics is wrong | metric definition, event write, dedupe, identity, display mapping | `backend-data.md` |
 | CI/deploy/process failure | first non-zero exit, artifact path, runtime owner | `runtime-deploy.md` |
 | User says “still wrong” | newest correction and exact rejected behavior | applicable domain reference after intent reset |
@@ -32,6 +33,17 @@ visible failure
 ```
 
 Stop when the causal chain is proven. Expand only when verification fails or evidence crosses another boundary.
+
+For generated artifacts, include the artifact freshness path in the layer walk:
+
+```text
+source input/template
+→ generation service
+→ stored file/object
+→ metadata, version marker, or invalidation rule
+→ download/preview route
+→ user-visible file
+```
 
 ## Hypothesis Elimination Loop
 

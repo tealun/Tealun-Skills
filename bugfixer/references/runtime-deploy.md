@@ -9,6 +9,7 @@ Use this reference when local code and running behavior disagree, configuration 
 - Prefer validated config getters over scattered raw environment reads.
 - Inspect import paths and precedence when sample configuration becomes active.
 - For SaaS integrations, separate provider-level application settings from per-tenant credentials and authorization.
+- When an interactive shell can find a CLI binary but the app cannot, compare the process manager or server panel user, `PATH`, virtualenv, working directory, and restart state. Prefer an absolute executable config and verify from the app process or logs.
 
 ## Production Version Path
 
@@ -35,6 +36,7 @@ Interpret route comparisons carefully:
 - Confirm source-only deploys rebuild generated output.
 - Ensure exactly one system owns restart: deploy workflow or process manager, not both.
 - For server panels, verify project/run directory, lockfile install command, build output, start entry, port, proxy, environment, and database assets.
+- Treat shell probes such as `command -v` or `whereis` as host evidence only; confirm the managed service reads the same environment or configure absolute paths such as `LIBREOFFICE_PATH`.
 
 If the configured project directory lacks `package.json` or source, debug sync before install/start.
 
