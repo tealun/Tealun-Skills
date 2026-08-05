@@ -4,7 +4,7 @@ description: 'Use for task execution, debugging, implementation, analysis, revie
 argument-hint: 'Describe the task goal, constraints, expected output, and validation method.'
 user-invocable: true
 disable-model-invocation: false
-version: 1.8.1
+version: 1.8.2
 ---
 
 # Tasker
@@ -129,6 +129,7 @@ Apply the smallest solution that satisfies `done_definition`.
 
 - Do not add unrelated cleanup, refactors, features, abstractions, or dependencies.
 - Match existing conventions and prefer simple, maintainable changes.
+- Only for development code changes, follow the project's programming language, framework, and existing comment style. Add concise comments or docstrings where they improve maintainability: non-obvious business rules, complex control flow, edge cases, integration contracts, or intentional tradeoffs. Keep comments readable, specific, and proportional; avoid restating obvious code or spreading comments mechanically.
 - For `M/L`, inspect the smallest credible impact surface: callers, consumers, shared contracts, configuration, and failure paths.
 - Classify adjacent findings as **required**, **optional**, or **unrelated**. Change required items, report optional items, and leave unrelated items untouched.
 - If a required discovery materially expands scope, retreat to `clarify`; do not expand silently.
