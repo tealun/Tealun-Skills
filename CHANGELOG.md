@@ -18,7 +18,7 @@
 ## 现有技能
 
 - `planner` 2.0.0
-- `tasker` 1.8.5
-- `auditor` 4.0.0
+- `tasker` 1.8.3
+- `auditor` 4.1.0
 - `bugfixer` 1.6.0
 - `evolver` 当前技能文件未声明版本

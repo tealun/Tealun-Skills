@@ -151,7 +151,7 @@ bash ./sync-skills.sh tasker planner
 
 ## 实战记录
 
-作者在 Moread、Tiko.day、Kelibron、carrot-run、business-card-saas 等项目里使用这套技能，记录见 [docs/case-studies.md](docs/case-studies.md)。例如：Moread 在第一次代码提交前做了五轮文档审计；Kelibron 的演进台账有 70 条记录，其中一个游标卡尺读数缺陷修好后，补了一条要求每个场景显示读数都等于测量值的回归测试。
+作者在 Moread、Tiko.day、Kelibron、business-card-saas、一个正在开发的小游戏 等项目里使用这套技能，记录见 [docs/case-studies.md](docs/case-studies.md)。例如：Moread 在第一次代码提交前做了五轮文档审计；Kelibron 的演进台账有 70 条记录，其中一个游标卡尺读数缺陷修好后，补了一条要求每个场景显示读数都等于测量值的回归测试。
 
 ## 安装到哪里
 

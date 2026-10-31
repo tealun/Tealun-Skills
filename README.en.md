@@ -151,7 +151,7 @@ Fuller install and troubleshooting steps are in [QUICKSTART.md](QUICKSTART.md) (
 
 ## Case studies
 
-The author uses these skills on Moread, Tiko.day, Kelibron, carrot-run, business-card-saas and other projects. The record is in [docs/case-studies.md](docs/case-studies.md) (Chinese, with an English summary at the top). For example, Moread went through five rounds of document audits before its first code commit, and Kelibron's evolution ledger has 70 entries; after one vernier-caliper readout defect was fixed, a regression test was added requiring every scene's displayed reading to equal the measured value.
+The author uses these skills on Moread, Tiko.day, Kelibron, business-card-saas, a small game in development and other projects. The record is in [docs/case-studies.md](docs/case-studies.md) (Chinese, with an English summary at the top). For example, Moread went through five rounds of document audits before its first code commit, and Kelibron's evolution ledger has 70 entries; after one vernier-caliper readout defect was fixed, a regression test was added requiring every scene's displayed reading to equal the measured value.
 
 ## Where the sync script installs
 

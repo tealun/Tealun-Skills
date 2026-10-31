@@ -9,7 +9,7 @@ Real use of these skills across the author's own projects, all built mainly by A
 - **Moread** (English close-reading WeChat mini-program, live about four months, 800+ registered users): 1,278 commits since 2026-04-14. The first 16 commits were documents only, including five rounds of document audits (each fixing 5 to 18 gaps) before the first code commit. 120 audit reports in `docs/99-audits`. Every bug fix is logged as symptom, cause, fix, release and leftovers.
 - **Tiko.day** (AI task and calendar assistant on Google Calendar and Google Tasks): 421 commits from 2026-10-19 to 10-28. The first 13 commits were docs only (product brief, architecture, data model, pricing, M0 fact-verification gates). Contracts were fixed before agents worked in parallel. 13 audit reports; the first found 0 P0 and 4 P1, including a settings-page crash and a browser path that bypassed server validation. 54 end-to-end test specs, a handoff doc for new sessions, and 15 owner feedback items triaged as do / do differently / don't (with reason) / clarify.
 - **Kelibron** (browser-based 3D precision-measurement training lab): 1,095 commits from 2026-10-05 to 10-28. The first 4 commits were docs, including a user value and retention audit that narrowed the MVP. An evolution ledger with 70 entries, 64 test files, and a deploy gate that fails the Cloudflare build when lint or tests fail. The skills are vendored into the repo, and the public [Labsmith](https://github.com/tealun/labsmith) skill was distilled from this project.
-- **carrot-run** (a WeChat runner game, in development): the first 9 commits were docs only, including three audits (readiness, deep design review, consistency) before the first prototype. The docs tree follows planner's structure exactly.
+- **A small game in development**: the first 9 commits were docs only, including three audits (readiness, deep design review, consistency) before the first prototype. The docs tree follows planner's structure exactly.
 - **business-card-saas** (public repo): the first 18 commits contained no product code; 7 audit reports over 1,700 lines. A doc audit found an unauthenticated, PII-writable leads endpoint before any code existed.
 
 ## 先说明两点
@@ -52,9 +52,9 @@ Real use of these skills across the author's own projects, all built mainly by A
 - 同一项目里，技能装了一个周期却一次没被调用，后来在项目指令里写明触发条件才解决。片段也在上面那份文档里。
 - 公开的 [Labsmith](https://github.com/tealun/labsmith) 技能就是从这个项目里整理出来的。
 
-## carrot-run（萝卜逃了个逃）
+## 一个正在开发的小游戏
 
-微信跑酷小游戏，开发中。
+项目名暂不公开。
 
 - 前 9 次提交全是文档，其中做了三次审计（开发就绪、深度设计评审、一致性检查），之后才做第一个原型。
 - 文档目录完全按 planner 的结构：`00_core`、`01_specs`、`02_tasks`、`03_compliance`、`88_planning`、`99_audits`。
