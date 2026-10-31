@@ -1,10 +1,10 @@
 ---
 name: bugfixer
-description: "Use for full-stack development-time bug fixing when the user reports broken behavior, UI regressions, screenshots that look wrong, console errors, API 400/401/500 failures, persistence problems, incorrect statistics, deployment/runtime failures, repeated correction, a failed post-change check, or a prior fix that missed the cause. Activate immediately on explicit failure evidence or 'still wrong' feedback; also activate after roughly four substantive unresolved diagnostic exchanges when at least one concrete failure exists. Reproduce or directly observe the symptom, collect runtime evidence, test competing hypotheses with discriminating checks, isolate the proven responsible layer, make the smallest safe fix, and verify the original user-visible outcome. Do not stop at plausible explanations or close merely because one attempted fix failed."
+description: "Use for full-stack development-time bug fixing when the user reports broken behavior, UI regressions, screenshots that look wrong, console errors, API 400/401/500 failures, persistence problems, incorrect statistics, deployment/runtime failures, repeated correction, a failed post-change check, or a prior fix that missed the cause. Activate immediately on explicit failure evidence or 'still wrong' feedback; also activate after roughly four substantive unresolved diagnostic exchanges when at least one concrete failure exists. Reproduce or directly observe the symptom, collect runtime evidence, test competing hypotheses with discriminating checks, isolate the proven responsible layer, make the smallest safe fix, verify the original user-visible outcome, and lock it with a regression test that fails without the fix when the project has a test harness. Do not stop at plausible explanations or close merely because one attempted fix failed."
 argument-hint: "Describe the symptom, screenshot/log/error, expected behavior, affected environment, and any recent change."
 user-invocable: true
 disable-model-invocation: false
-version: 1.5.0
+version: 1.6.0
 ---
 
 # Bugfixer
@@ -86,6 +86,16 @@ Observation | Candidate cause | Predicted evidence | Discriminating check | Resu
 - Report exact unverified gaps and required restart, migration, deploy, or user visual confirmation.
 - Do not say “fixed” until evidence matches the original or corrected symptom.
 
+### 5a. Lock the fix with a regression guard
+
+After the original symptom is verified gone, make the fix hard to lose:
+
+- When the project has a test harness (unit, integration, end-to-end, contract, or a check script that CI or the documented pre-commit gate runs), add the narrowest automated test that reproduces the original symptom and passes only with the fix. Assert the user-visible outcome or the proven causal link, not an implementation detail that a harmless refactor would break.
+- When no harness covers the failing layer, add the closest executable guard the project already runs—a schema or config validation, a lint rule, a smoke script, a startup assertion—or state why none is proportionate.
+- When feasible, prove the guard bites with a mutation check: temporarily revert or disable only the fix, run the new test and record that it fails for the expected reason, restore the fix, and record that it passes. Revert only the fix's own hunks (a reverse patch of the fix, or a stash limited to files that hold no other uncommitted work); never leave the revert in place and never touch unrelated work.
+- Keep it proportionate. Do not build a new test framework, add dependencies, or broaden scope just to host one test. Skip with a stated reason when there is no harness, the defect lives only in an environment tests cannot reach, or the user declines; report the skip as an unguarded gap.
+- A guard that passes with and without the fix is not a guard. Rework it or report it as unverified.
+
 ### 6. Continue after a missed fix
 
 A failed repair is new diagnostic evidence, not a reason to stop.
@@ -141,6 +151,7 @@ Report concisely:
 1. Cause and repair.
 2. Files or modules changed.
 3. Checks and observed results.
-4. Remaining restart, migration, deployment, or user confirmation.
+4. Regression guard: the test or check added, and the mutation-check result (fails without the fix, passes with it), or the stated reason it was skipped.
+5. Remaining restart, migration, deployment, or user confirmation.
 
 Commit or push only when explicitly requested.
