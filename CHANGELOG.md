@@ -12,6 +12,7 @@
 - `bugfixer` 1.6.0：原症状验证消失后，项目有测试框架时要补一条不带修复就会失败的自动化回归测试（没有测试框架时补最接近的可执行检查）；条件允许时临时撤掉修复做一次变异检查，证明这条测试真的能拦住问题。没有可用框架时写明原因并作为未防护缺口报告。
 - 新增 `docs/agent-instructions-snippet.md`：可直接粘贴到项目 `CLAUDE.md` / `AGENTS.md` 的中英文技能触发片段，以及在云端会话里把技能固定版本放进项目的做法。
 - 新增 `docs/case-studies.md`：作者在多个项目中使用这套技能的真实记录（中文，附英文摘要）。
+- 新增 Claude Code 插件市场清单 `.claude-plugin/marketplace.json`：`/plugin marketplace add tealun/Tealun-Skills` 后 `/plugin install tealun-skills@tealun-skills` 即可安装五个技能。技能目录位置不变，同步脚本照常可用。
 
 ## 现有技能
 

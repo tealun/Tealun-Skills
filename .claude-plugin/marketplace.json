@@ -1,0 +1,32 @@
+{
+  "name": "tealun-skills",
+  "description": "Tealun Skills: planner, tasker, bugfixer, auditor and evolver, evidence-first workflows for AI coding agents.",
+  "owner": {
+    "name": "Tealun",
+    "url": "https://github.com/tealun"
+  },
+  "plugins": [
+    {
+      "name": "tealun-skills",
+      "displayName": "Tealun Skills",
+      "source": "./",
+      "description": "Five skills: planner (plan before code), tasker (checkable changes with evidence), bugfixer (reproduce, prove the cause, fix, guard), auditor (evidence-backed audits), evolver (turn verified lessons into guards and ledger records).",
+      "author": {
+        "name": "Tealun",
+        "url": "https://github.com/tealun"
+      },
+      "homepage": "https://github.com/tealun/Tealun-Skills",
+      "repository": "https://github.com/tealun/Tealun-Skills",
+      "license": "MIT",
+      "keywords": ["planning", "task-execution", "debugging", "audit", "retrospective"],
+      "category": "development-workflow",
+      "skills": [
+        "./planner",
+        "./tasker",
+        "./bugfixer",
+        "./auditor",
+        "./evolver"
+      ]
+    }
+  ]
+}
