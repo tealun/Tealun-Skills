@@ -91,7 +91,7 @@ bash ./sync-skills.sh tasker planner
 
 ## 让 Agent 真的调用技能
 
-装好技能不等于 Agent 会用。作者的 Kelibron 项目里，四个技能装了整整一个开发周期，Agent 一次都没有调用，因为项目指令里没写什么时候该用。解决办法是在项目的 `CLAUDE.md` 或 `AGENTS.md` 里写明触发条件。
+装好技能不等于 Agent 会用。项目指令里如果没写什么时候该用哪个技能，Agent 往往按自己的习惯干活，技能装了一整个开发周期也可能一次都不被调用。解决办法是在项目的 `CLAUDE.md` 或 `AGENTS.md` 里写明触发条件。
 
 把下面这段复制进你项目的指令文件：
 
@@ -149,10 +149,6 @@ bash ./sync-skills.sh tasker planner
 | 已经有报错、回归、异常表现 | `bugfixer` | 先复现和定位，再做最小修复，修好后补回归测试，避免靠经验猜 bug |
 | 同类问题反复出现，想把教训留住 | `evolver` | 把已验证经验变成规则、检查、台账或下一轮计划输入 |
 
-## 实战记录
-
-作者在 Moread、Tiko.day、Kelibron、business-card-saas、一个正在开发的小游戏 等项目里使用这套技能，记录见 [docs/case-studies.md](docs/case-studies.md)。例如：Moread 在第一次代码提交前做了五轮文档审计；Kelibron 的演进台账有 70 条记录，其中一个游标卡尺读数缺陷修好后，补了一条要求每个场景显示读数都等于测量值的回归测试。
-
 ## 安装到哪里
 
 同步脚本会检测本机已经安装或配置过的兼容工具，把技能复制到对应的 `skills` 目录。当前覆盖：
@@ -198,7 +194,7 @@ git pull
 ├── evolver/          # 把经验固化为长期防线的复盘技能
 ├── planner/          # 项目前期规划技能
 ├── tasker/           # 通用任务执行纪律技能
-├── docs/             # 指令片段、实战记录、本仓库的演进台账
+├── docs/             # 指令片段、本仓库的演进台账
 ├── sync-skills.ps1   # Windows 同步脚本
 └── sync-skills.sh    # macOS / Linux / WSL 同步脚本
 ```

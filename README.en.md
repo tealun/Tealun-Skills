@@ -91,7 +91,7 @@ After installing, reopen your agent CLI or start a new session so the tool reloa
 
 ## Make the agent actually invoke the skills
 
-Installed is not the same as used. In the author's Kelibron project, four of these skills were installed for a whole development cycle and the agent never invoked them once, because the project instructions never said when to use them. The fix was to write the triggers into the project's `CLAUDE.md` or `AGENTS.md`.
+Installed is not the same as used. If the project instructions never say when to use which skill, the agent tends to fall back on its own habits, and the skills can sit unused for a whole development cycle. The fix is to write the triggers into the project's `CLAUDE.md` or `AGENTS.md`.
 
 Copy this into your project's instruction file:
 
@@ -148,10 +148,6 @@ Fuller install and troubleshooting steps are in [QUICKSTART.md](QUICKSTART.md) (
 | You want to find risks before a merge, release or hand-over | `auditor` | Only findings with evidence are reported, with severity, confidence and verification gaps kept apart |
 | There is already an error, a regression or odd behaviour | `bugfixer` | Reproduce and locate first, make the smallest fix, then add a regression test, instead of guessing the bug from experience |
 | The same kind of problem keeps coming back and you want the lesson to stick | `evolver` | Verified lessons become rules, checks, ledger records or input for the next plan |
-
-## Case studies
-
-The author uses these skills on Moread, Tiko.day, Kelibron, business-card-saas, a small game in development and other projects. The record is in [docs/case-studies.md](docs/case-studies.md) (Chinese, with an English summary at the top). For example, Moread went through five rounds of document audits before its first code commit, and Kelibron's evolution ledger has 70 entries; after one vernier-caliper readout defect was fixed, a regression test was added requiring every scene's displayed reading to equal the measured value.
 
 ## Where the sync script installs
 
