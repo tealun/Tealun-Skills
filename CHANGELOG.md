@@ -13,6 +13,7 @@
 - 新增 `docs/agent-instructions-snippet.md`：可直接粘贴到项目 `CLAUDE.md` / `AGENTS.md` 的中英文技能触发片段，以及在云端会话里把技能固定版本放进项目的做法。
 - 新增 `docs/case-studies.md`：作者在多个项目中使用这套技能的真实记录（中文，附英文摘要）。
 - 新增 Claude Code 插件市场清单 `.claude-plugin/marketplace.json`：`/plugin marketplace add tealun/Tealun-Skills` 后 `/plugin install tealun-skills@tealun-skills` 即可安装五个技能。技能目录位置不变，同步脚本照常可用。
+- README 增加插件安装方式、「让 Agent 真的调用技能」指令片段和实战记录入口；新增英文版 `README.en.md`，两份 README 顶部互相链接。
 
 ## 现有技能
 
